@@ -84,7 +84,7 @@ cd lm-bridge
 git submodule update --init --recursive
 ```
 
-Use the helper script (defaults to `linux/amd64` and tag `lm-bridge:dev`):
+Use the helper script (defaults to `linux/amd64` and tag `lm-bridge:latest`):
 
 ```bash
 scripts/build-image.sh
@@ -93,13 +93,13 @@ scripts/build-image.sh
 Override defaults:
 
 ```bash
-PLATFORMS=linux/amd64 LMBRIDGE_IMAGE=lm-bridge:dev scripts/build-image.sh
+PLATFORMS=linux/amd64 LMBRIDGE_IMAGE=lm-bridge:latest scripts/build-image.sh
 ```
 
 Multi-arch build (push required):
 
 ```bash
-PLATFORMS=linux/amd64,linux/arm64 PUSH=1 LMBRIDGE_IMAGE=lm-bridge:dev scripts/build-image.sh
+PLATFORMS=linux/amd64,linux/arm64 PUSH=1 LMBRIDGE_IMAGE=lm-bridge:latest scripts/build-image.sh
 ```
 
 Start the container using the provided settings file (Compose will build the image if it doesn't exist locally):
@@ -108,7 +108,7 @@ Start the container using the provided settings file (Compose will build the ima
 docker compose -f overlay/deploy/lm-bridge-settings.yml up -d
 ```
 
-Note: Compose defaults to `lm-bridge:dev`. Build locally first, or set `LMBRIDGE_IMAGE` to a tag you’ve already built or pushed.
+Note: Compose defaults to `lm-bridge:latest`. Build locally first, or set `LMBRIDGE_IMAGE` to a tag you’ve already built or pushed.
 
 If you want to run it on the **same Docker network** as your MusicBrainz mirror and auto-run the **init container**, use the repo’s root `docker-compose.yml` (it’s already there if you cloned the repo). Then run:
 
@@ -121,7 +121,7 @@ The `init` container will exit after completing setup. That is expected.
 If you use custom image tags, set them via environment:
 
 ```bash
-LMBRIDGE_IMAGE=lm-bridge:dev \
+LMBRIDGE_IMAGE=lm-bridge:latest \
 MB_NETWORK=musicbrainz_default \
 docker compose -f docker-compose.yml up -d
 ```

@@ -1,7 +1,7 @@
 services:
   api:
     # Use a local tag or set via env
-    image: ${LMBRIDGE_IMAGE:-lm-bridge:dev}
+    image: ${LMBRIDGE_IMAGE:-lm-bridge:latest}
     ports:
       - "5001:5001"
     environment:

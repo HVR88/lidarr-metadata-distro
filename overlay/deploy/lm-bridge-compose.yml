@@ -1,6 +1,6 @@
 services:
   init:
-    image: ${LMBRIDGE_IMAGE:-lm-bridge:dev}
+    image: ${LMBRIDGE_IMAGE:-lm-bridge:latest}
     build:
       context: .
       dockerfile: Dockerfile
@@ -19,7 +19,7 @@ services:
       - musicbrainz
 
   api:
-    image: ${LMBRIDGE_IMAGE:-lm-bridge:dev}
+    image: ${LMBRIDGE_IMAGE:-lm-bridge:latest}
     build:
       context: .
       dockerfile: Dockerfile
