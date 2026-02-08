@@ -1,0 +1,4 @@
+name: lidarr-metadata-distro
+
+include:
+  - overlay/deploy/lmd-compose.yml

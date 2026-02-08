@@ -85,10 +85,10 @@ Start the container using the provided settings file:
 docker compose -f overlay/deploy/lmd-settings.yml up -d
 ```
 
-If you want to run it on the **same Docker network** as your MusicBrainz mirror, use the compose file with an external network reference. This also runs the **init container** automatically on startup:
+If you want to run it on the **same Docker network** as your MusicBrainz mirror, just run from the repo root. This also runs the **init container** automatically on startup:
 
 ```bash
-MB_NETWORK=musicbrainz_default docker compose -f overlay/deploy/lmd-compose.yml up -d
+MB_NETWORK=musicbrainz_default docker compose up -d
 ```
 
 The `lmd-init` container will exit after completing setup. That is expected.
@@ -99,10 +99,16 @@ If you use custom image tags, set them via environment:
 LMD_IMAGE=hvr88/lidarr.metadata:dev \
 LMD_INIT_IMAGE=hvr88/lidarr.metadata-init:dev \
 MB_NETWORK=musicbrainz_default \
-docker compose -f overlay/deploy/lmd-compose.yml up -d
+docker compose up -d
 ```
 
 Note: `MB_DB_USER` must have permission to create roles and databases (the mirror's primary Postgres user usually does).
+
+If your Docker Compose version does not support `include`, you can still run the underlying file directly:
+
+```bash
+MB_NETWORK=musicbrainz_default docker compose -f overlay/deploy/lmd-compose.yml up -d
+```
 
 ## Verify
 
