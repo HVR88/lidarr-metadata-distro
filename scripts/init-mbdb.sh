@@ -44,7 +44,7 @@ if [[ "$use_docker" -eq 0 ]] && command -v psql >/dev/null 2>&1; then
   SQL_PATH="$TMP_SQL"
   CACHE_SQL_PATH="$CACHE_SQL"
 else
-  POSTGRES_IMAGE=${POSTGRES_IMAGE:-postgres:14-alpine}
+  POSTGRES_IMAGE=${POSTGRES_IMAGE:-postgres:16-alpine}
   docker_args_mb=(--rm -e PGPASSWORD="$MB_DB_PASSWORD" -v "$TMP_SQL":/sql/CreateIndices.sql:ro -v "$CACHE_SQL":/sql/cache.sql:ro)
   docker_args_cache=(--rm -e PGPASSWORD="$LMD_CACHE_PASSWORD" -v "$TMP_SQL":/sql/CreateIndices.sql:ro -v "$CACHE_SQL":/sql/cache.sql:ro)
   if [[ -n "$MB_DB_NETWORK" ]]; then
