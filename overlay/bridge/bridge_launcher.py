@@ -21,7 +21,7 @@ def main() -> int:
     import lidarrmetadata.bridge_config  # noqa: F401
 
     # Optional runtime patches
-    if os.environ.get("LMD_APPLY_PATCHES", "").lower() in {"1", "true", "yes"}:
+    if os.environ.get("LMBRIDGE_APPLY_PATCHES", "").lower() in {"1", "true", "yes"}:
         from lidarrmetadata import app_patch
 
         app_patch.apply()

@@ -18,9 +18,9 @@ MB_DB_NAME=${MB_DB_NAME:-musicbrainz_db}
 MB_ADMIN_DB=${MB_ADMIN_DB:-postgres}
 MB_DB_NETWORK=${MB_DB_NETWORK:-}
 
-LMD_CACHE_DB=${LMD_CACHE_DB:-lm_cache_db}
-LMD_CACHE_USER=${LMD_CACHE_USER:-abc}
-LMD_CACHE_PASSWORD=${LMD_CACHE_PASSWORD:-abc}
+LMBRIDGE_CACHE_DB=${LMBRIDGE_CACHE_DB:-lm_cache_db}
+LMBRIDGE_CACHE_USER=${LMBRIDGE_CACHE_USER:-abc}
+LMBRIDGE_CACHE_PASSWORD=${LMBRIDGE_CACHE_PASSWORD:-abc}
 
 TMP_SQL="$(mktemp)"
 CACHE_SQL="$(mktemp)"
@@ -39,14 +39,14 @@ if [[ "$use_docker" -eq 0 ]] && command -v psql >/dev/null 2>&1; then
     PGPASSWORD="$MB_DB_PASSWORD" psql -h "$MB_DB_HOST" -p "$MB_DB_PORT" -U "$MB_DB_USER" -d "$1" "${@:2}"
   }
   psql_run_cache() {
-    PGPASSWORD="$LMD_CACHE_PASSWORD" psql -h "$MB_DB_HOST" -p "$MB_DB_PORT" -U "$LMD_CACHE_USER" -d "$1" "${@:2}"
+    PGPASSWORD="$LMBRIDGE_CACHE_PASSWORD" psql -h "$MB_DB_HOST" -p "$MB_DB_PORT" -U "$LMBRIDGE_CACHE_USER" -d "$1" "${@:2}"
   }
   SQL_PATH="$TMP_SQL"
   CACHE_SQL_PATH="$CACHE_SQL"
 else
   POSTGRES_IMAGE=${POSTGRES_IMAGE:-postgres:16-alpine}
   docker_args_mb=(--rm -e PGPASSWORD="$MB_DB_PASSWORD" -v "$TMP_SQL":/sql/CreateIndices.sql:ro -v "$CACHE_SQL":/sql/cache.sql:ro)
-  docker_args_cache=(--rm -e PGPASSWORD="$LMD_CACHE_PASSWORD" -v "$TMP_SQL":/sql/CreateIndices.sql:ro -v "$CACHE_SQL":/sql/cache.sql:ro)
+  docker_args_cache=(--rm -e PGPASSWORD="$LMBRIDGE_CACHE_PASSWORD" -v "$TMP_SQL":/sql/CreateIndices.sql:ro -v "$CACHE_SQL":/sql/cache.sql:ro)
   if [[ -n "$MB_DB_NETWORK" ]]; then
     docker_args_mb+=(--network "$MB_DB_NETWORK")
     docker_args_cache+=(--network "$MB_DB_NETWORK")
@@ -57,29 +57,29 @@ else
   }
   psql_run_cache() {
     docker run "${docker_args_cache[@]}" "$POSTGRES_IMAGE" \
-      psql -h "$MB_DB_HOST" -p "$MB_DB_PORT" -U "$LMD_CACHE_USER" -d "$1" "${@:2}"
+      psql -h "$MB_DB_HOST" -p "$MB_DB_PORT" -U "$LMBRIDGE_CACHE_USER" -d "$1" "${@:2}"
   }
   SQL_PATH="/sql/CreateIndices.sql"
   CACHE_SQL_PATH="/sql/cache.sql"
 fi
 
 ensure_role() {
-  if ! psql_run "$MB_ADMIN_DB" -tAc "SELECT 1 FROM pg_roles WHERE rolname='${LMD_CACHE_USER}'" | grep -q 1; then
-    echo "Creating role: ${LMD_CACHE_USER}"
+  if ! psql_run "$MB_ADMIN_DB" -tAc "SELECT 1 FROM pg_roles WHERE rolname='${LMBRIDGE_CACHE_USER}'" | grep -q 1; then
+    echo "Creating role: ${LMBRIDGE_CACHE_USER}"
     psql_run "$MB_ADMIN_DB" -v ON_ERROR_STOP=1 \
-      -c "CREATE ROLE \"${LMD_CACHE_USER}\" LOGIN PASSWORD '${LMD_CACHE_PASSWORD}';"
+      -c "CREATE ROLE \"${LMBRIDGE_CACHE_USER}\" LOGIN PASSWORD '${LMBRIDGE_CACHE_PASSWORD}';"
   else
-    echo "Role exists: ${LMD_CACHE_USER}"
+    echo "Role exists: ${LMBRIDGE_CACHE_USER}"
   fi
 }
 
 ensure_db() {
-  if ! psql_run "$MB_ADMIN_DB" -tAc "SELECT 1 FROM pg_database WHERE datname='${LMD_CACHE_DB}'" | grep -q 1; then
-    echo "Creating database: ${LMD_CACHE_DB} (owner: ${LMD_CACHE_USER})"
+  if ! psql_run "$MB_ADMIN_DB" -tAc "SELECT 1 FROM pg_database WHERE datname='${LMBRIDGE_CACHE_DB}'" | grep -q 1; then
+    echo "Creating database: ${LMBRIDGE_CACHE_DB} (owner: ${LMBRIDGE_CACHE_USER})"
     psql_run "$MB_ADMIN_DB" -v ON_ERROR_STOP=1 \
-      -c "CREATE DATABASE \"${LMD_CACHE_DB}\" OWNER \"${LMD_CACHE_USER}\";"
+      -c "CREATE DATABASE \"${LMBRIDGE_CACHE_DB}\" OWNER \"${LMBRIDGE_CACHE_USER}\";"
   else
-    echo "Database exists: ${LMD_CACHE_DB}"
+    echo "Database exists: ${LMBRIDGE_CACHE_DB}"
   fi
 }
 
@@ -114,6 +114,6 @@ SQL
 done
 
 # Ensure cache tables exist in lm_cache_db
-psql_run_cache "$LMD_CACHE_DB" -v ON_ERROR_STOP=1 -f "$CACHE_SQL_PATH"
+psql_run_cache "$LMBRIDGE_CACHE_DB" -v ON_ERROR_STOP=1 -f "$CACHE_SQL_PATH"
 
 echo "Done."

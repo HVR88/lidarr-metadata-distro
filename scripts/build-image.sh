@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 
 # Default to amd64; override with PLATFORMS=linux/amd64,linux/arm64
 PLATFORMS="${PLATFORMS:-linux/amd64}"
-IMAGE="${IMAGE:-hvr88/lidarr.metadata:dev}"
+IMAGE="${LMBRIDGE_IMAGE:-${IMAGE:-lm-bridge:dev}}"
 PUSH="${PUSH:-0}"
 
 load_flag=(--load)

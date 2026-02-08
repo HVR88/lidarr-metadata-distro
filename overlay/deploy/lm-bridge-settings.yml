@@ -1,7 +1,7 @@
 services:
-  lm-bridge:
-    # Replace tag when you publish (or set via env)
-    image: hvr88/lidarr.metadata:dev
+  api:
+    # Use a local tag or set via env
+    image: ${LMBRIDGE_IMAGE:-lm-bridge:dev}
     ports:
       - "5001:5001"
     environment:

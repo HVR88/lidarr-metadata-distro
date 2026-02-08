@@ -17,7 +17,7 @@ def apply() -> None:
     """
     Apply optional runtime patches. Currently a no-op unless enabled.
     """
-    if os.environ.get("LMD_PATCH_SPOTIFY_CACHE", "").lower() in {"1", "true", "yes"}:
+    if os.environ.get("LMBRIDGE_PATCH_SPOTIFY_CACHE", "").lower() in {"1", "true", "yes"}:
         # Placeholder: wire safe_spotify_set into call sites if/when needed.
         # Intentionally no behavior change today.
         return

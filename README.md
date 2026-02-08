@@ -4,7 +4,7 @@
 
 # Lidarr Metadata Distro
 
-This repo builds a standalone Lidarr Metadata Server image that bridges to a separately-run MusicBrainz mirror. It overlays upstream `LidarrAPI.Metadata` without modifying upstream code.
+This repo builds a standalone Lidarr Metadata Server image that bridges to a separately-run MusicBrainz mirror. It overlays the fork `HVR88/LidarrAPI.Metadata` without modifying the upstream code.
 
 **What This Repo Does**
 1. Builds an AMD64-focused container image for Lidarr Metadata Server.
@@ -18,7 +18,7 @@ This repo builds a standalone Lidarr Metadata Server image that bridges to a sep
 
 **Key Defaults**
 1. MusicBrainz DB defaults to `musicbrainz:musicbrainz` unless you override.
-2. LMD cache DB defaults to `lm_cache_db` with user `abc` / password `abc`.
+2. LMBRIDGE cache DB defaults to `lm_cache_db` with user `abc` / password `abc`.
 
 ## Configuration
 
@@ -31,7 +31,7 @@ Important fields:
 
 If you want to use Docker service names like `db`, `search`, or `redis`, run this container on the same Docker network as your MusicBrainz mirror.
 
-## Step 8: Initialize LMD Cache DB and MusicBrainz Indexes
+## Step 8: Initialize LMBRIDGE Cache DB and MusicBrainz Indexes
 
 This repo includes `scripts/init-mbdb.sh` to handle the database prep that used to be done inside the mirror stack.
 
@@ -55,9 +55,9 @@ scripts/init-mbdb.sh
 You can change cache DB settings if needed:
 
 ```bash
-LMD_CACHE_DB=lm_cache_db \
-LMD_CACHE_USER=abc \
-LMD_CACHE_PASSWORD=abc \
+LMBRIDGE_CACHE_DB=lm_cache_db \
+LMBRIDGE_CACHE_USER=abc \
+LMBRIDGE_CACHE_PASSWORD=abc \
 scripts/init-mbdb.sh
 ```
 
@@ -65,7 +65,7 @@ The script also creates the cache tables (`fanart`, `tadb`, `wikipedia`, `artist
 
 ## Build And Run
 
-Use the helper script (defaults to `linux/amd64`):
+Use the helper script (defaults to `linux/amd64` and tag `lm-bridge:dev`):
 
 ```bash
 scripts/build-image.sh
@@ -74,13 +74,13 @@ scripts/build-image.sh
 Override defaults:
 
 ```bash
-PLATFORMS=linux/amd64 IMAGE=hvr88/lidarr.metadata:dev scripts/build-image.sh
+PLATFORMS=linux/amd64 LMBRIDGE_IMAGE=lm-bridge:dev scripts/build-image.sh
 ```
 
 Multi-arch build (push required):
 
 ```bash
-PLATFORMS=linux/amd64,linux/arm64 PUSH=1 IMAGE=hvr88/lidarr.metadata:dev scripts/build-image.sh
+PLATFORMS=linux/amd64,linux/arm64 PUSH=1 LMBRIDGE_IMAGE=lm-bridge:dev scripts/build-image.sh
 ```
 
 Start the container using the provided settings file:
@@ -89,18 +89,20 @@ Start the container using the provided settings file:
 docker compose -f overlay/deploy/lm-bridge-settings.yml up -d
 ```
 
+Note: Compose defaults to `lm-bridge:dev`. Build locally first, or set `LMBRIDGE_IMAGE` to a tag you’ve already built or pushed.
+
 If you want to run it on the **same Docker network** as your MusicBrainz mirror and auto-run the **init container**, use the repo’s root `docker-compose.yml` (it’s already there if you cloned the repo). Then run:
 
 ```bash
 MB_NETWORK=musicbrainz_default docker compose -f docker-compose.yml up -d
 ```
 
-The `lm-bridge-init` container will exit after completing setup. That is expected.
+The `init` container will exit after completing setup. That is expected.
 
 If you use custom image tags, set them via environment:
 
 ```bash
-LMD_IMAGE=hvr88/lidarr.metadata:dev \
+LMBRIDGE_IMAGE=lm-bridge:dev \
 MB_NETWORK=musicbrainz_default \
 docker compose -f docker-compose.yml up -d
 ```
@@ -126,7 +128,7 @@ If the bridge is configured correctly, you should see JSON metadata from your mi
 If it fails, check logs:
 
 ```bash
-docker compose logs -f lm-bridge
+docker compose logs -f api
 ```
 
 ## Docker Hub Release (Manual)
