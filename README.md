@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/HVR88/lidarr-metadata-distro/main/assets/lm-bridge.svg" alt="LM Bridge" width="160" />
+</p>
+
 # Lidarr Metadata Distro
 
 This repo builds a standalone Lidarr Metadata Server image that bridges to a separately-run MusicBrainz mirror. It overlays upstream `LidarrAPI.Metadata` without modifying upstream code.
@@ -124,3 +128,13 @@ If it fails, check logs:
 ```bash
 docker compose logs -f lm-bridge
 ```
+
+## Docker Hub Release (Manual)
+
+This repo includes a GitHub Actions workflow that can build and push the image to Docker Hub on demand.
+
+Required secrets:
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+
+In GitHub: **Actions → Docker Hub Release → Run workflow**.
