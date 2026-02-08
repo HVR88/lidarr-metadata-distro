@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/HVR88/lidarr-metadata-distro/main/assets/lm-bridge-icon.png" alt="LM Bridge" width="160" />
+  <img src="https://raw.githubusercontent.com/HVR88/lm-bridge/main/assets/lm-bridge-icon.png" alt="LM Bridge" width="400" />
 </p>
 
 # Lidarr Metadata Distro
@@ -7,16 +7,19 @@
 This repo builds a standalone Lidarr Metadata Server image that bridges to a separately-run MusicBrainz mirror. It overlays the fork `HVR88/LidarrAPI.Metadata` without modifying the upstream code.
 
 **What This Repo Does**
+
 1. Builds an AMD64-focused container image for Lidarr Metadata Server.
 2. Adds a bridge config layer so you can point at your MusicBrainz mirror and Solr.
 3. Keeps the project outside the MusicBrainz mirror stack.
 4. Provides an **init service** that prepares the cache DB and indexes on first start (using the same image).
 
 **What This Repo Does Not Do**
+
 1. It does not build or run the MusicBrainz mirror stack.
 2. It does not change MusicBrainz mirror defaults unless you explicitly configure overrides.
 
 **Key Defaults**
+
 1. MusicBrainz DB defaults to `musicbrainz:musicbrainz` unless you override.
 2. LMBRIDGE cache DB defaults to `lm_cache_db` with user `abc` / password `abc`.
 
@@ -25,6 +28,7 @@ This repo builds a standalone Lidarr Metadata Server image that bridges to a sep
 Edit `overlay/deploy/lm-bridge-settings.yml` to match your environment. This file is a standalone Compose file for the LM-Bridge container.
 
 Important fields:
+
 - `PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_HOST` should point to your MusicBrainz DB host or service name.
 - `PROVIDERS__SOLRSEARCHPROVIDER__1__SEARCH_SERVER` should point to your Solr endpoint.
 - `POSTGRES_CACHE_HOST` should point to the Postgres host that will hold `lm_cache_db`.
@@ -64,6 +68,21 @@ scripts/init-mbdb.sh
 The script also creates the cache tables (`fanart`, `tadb`, `wikipedia`, `artist`, `album`, `spotify`) inside `lm_cache_db` to avoid runtime errors like `relation "tadb" does not exist`.
 
 ## Build And Run
+
+## Clone
+
+Recommended (pulls the upstream submodule automatically):
+
+```bash
+git clone --recurse-submodules https://github.com/HVR88/lm-bridge.git
+```
+
+If you already cloned without submodules:
+
+```bash
+cd lm-bridge
+git submodule update --init --recursive
+```
 
 Use the helper script (defaults to `linux/amd64` and tag `lm-bridge:dev`):
 
@@ -136,6 +155,7 @@ docker compose logs -f api
 This repo includes a GitHub Actions workflow that can build and push the image to Docker Hub on demand.
 
 Required secrets:
+
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN`
 
