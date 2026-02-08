@@ -1,0 +1,16 @@
+FROM python:3.9-alpine
+
+ENV POETRY_VIRTUALENVS_CREATE=false \
+    PYTHONUNBUFFERED=1
+
+RUN apk add --no-cache build-base git curl
+
+RUN pip install poetry
+
+WORKDIR /metadata
+COPY . /metadata
+
+RUN poetry install --no-interaction --no-ansi
+
+EXPOSE 5001
+ENTRYPOINT ["lidarr-metadata-server"]

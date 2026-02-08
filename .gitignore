@@ -1,0 +1,8 @@
+# Upstream stays as its own repo (not committed into distro)
+upstream/
+
+# Keep reverse-engineering artifacts out of the distro repo
+research/
+
+# Local noise
+**/.DS_Store

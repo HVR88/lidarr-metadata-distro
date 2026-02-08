@@ -1,0 +1,35 @@
+services:
+  lmd:
+    # Replace tag when you publish (or set via env)
+    image: hvr88/lidarr.metadata:dev
+    ports:
+      - "5001:5001"
+    environment:
+      # --- General ---
+      DEBUG: "false"
+      PRODUCTION: "false"
+      USE_CACHE: "true"
+      ENABLE_STATS: "false"
+      ROOT_PATH: ""
+
+      # --- Redis ---
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+
+      # --- Solr mirror ---
+      PROVIDERS__SOLRSEARCHPROVIDER__1__SEARCH_SERVER: "http://search:8983/solr"
+
+      # --- MusicBrainz DB creds (set these to match your mirror) ---
+      PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_HOST: "db"
+      PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_PORT: "5432"
+      PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_USER: "abc"
+      PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_PASSWORD: "abc"
+
+      # --- External providers (fill in later) ---
+      FANART_KEY: ""
+      TADB_KEY: "2"
+      LASTFM_KEY: ""
+      LASTFM_SECRET: ""
+      SPOTIFY_ID: ""
+      SPOTIFY_SECRET: ""
+      SPOTIFY_REDIRECT_URL: "http://HOST_IP:5001"
