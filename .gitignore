@@ -11,3 +11,7 @@ research/
 upstream/lidarr-metadata/lmd-settings.yml
 # never commit upstream edits; Dockerfile is tracked upstream
 !upstream/lidarr-metadata/Dockerfile
+
+# allow upstream submodule
+!upstream/
+!upstream/lidarr-metadata/
