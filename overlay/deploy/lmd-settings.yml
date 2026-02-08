@@ -23,8 +23,13 @@ services:
       # --- MusicBrainz DB creds (set these to match your mirror) ---
       PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_HOST: "db"
       PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_PORT: "5432"
-      PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_USER: "abc"
-      PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_PASSWORD: "abc"
+      PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_USER: "musicbrainz"
+      PROVIDERS__MUSICBRAINZDBPROVIDER__1__DB_PASSWORD: "musicbrainz"
+
+      # --- Postgres cache (lm_cache_db) ---
+      # Uses abc:abc by default in upstream; ensure that user exists or adjust.
+      POSTGRES_CACHE_HOST: "db"
+      POSTGRES_CACHE_PORT: "5432"
 
       # --- External providers (fill in later) ---
       FANART_KEY: ""

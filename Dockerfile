@@ -1,6 +1,5 @@
-# Use official Python 3.9 image for AMD64 (override with --build-arg TARGETPLATFORM=...)
-ARG TARGETPLATFORM=linux/amd64
-FROM --platform=$TARGETPLATFORM python:3.9-bullseye
+# Use official Python 3.9 image (platform set at build/run time)
+FROM python:3.9-bullseye
 
 # Set working directory
 WORKDIR /metadata
