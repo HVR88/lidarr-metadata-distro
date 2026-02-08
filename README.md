@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/HVR88/lm-bridge/main/assets/lmbridge-icon.png" alt="LM Bridge" width="500" />
 </p>
 
-# Lidarr/MusiBrainz Bridge
+# Lidarr/MusicBrainz Bridge
 
 This repo builds a standalone Lidarr Metadata Server image that bridges to a separately-run MusicBrainz mirror. It overlays the fork `HVR88/LidarrAPI.Metadata` without modifying the upstream code.
 
@@ -34,6 +34,8 @@ Important fields:
 - `POSTGRES_CACHE_HOST` should point to the Postgres host that will hold `lm_cache_db`.
 
 If you want to use Docker service names like `db`, `search`, or `redis`, run this container on the same Docker network as your MusicBrainz mirror.
+
+For best metadata enrichment, set API keys for TheAudioDB and Fanart.tv via `TADB_KEY` and `FANART_KEY` (in `overlay/deploy/lm-bridge-settings.yml` or via environment variables).
 
 ## Step 8: Initialize LMBRIDGE Cache DB and MusicBrainz Indexes
 
