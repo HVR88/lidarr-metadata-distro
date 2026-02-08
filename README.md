@@ -43,7 +43,7 @@ If you do not have `psql` installed locally, the script will use a temporary `po
 
 ```bash
 MB_DB_HOST=db \
-MB_DB_NETWORK=musicbrainz-docker_default \
+MB_DB_NETWORK=musicbrainz_default \
 scripts/init-mbdb.sh
 ```
 
@@ -80,6 +80,12 @@ Start the container using the provided settings file:
 
 ```bash
 docker compose -f overlay/deploy/lmd-settings.yml up -d
+```
+
+If you want to run it on the **same Docker network** as your MusicBrainz mirror, use the compose file with an external network reference:
+
+```bash
+MB_NETWORK=musicbrainz_default docker compose -f overlay/deploy/lmd-compose.yml up -d
 ```
 
 ## Verify
