@@ -9,3 +9,5 @@ research/
 
 # never commit upstream working-tree artifacts
 upstream/lidarr-metadata/lmd-settings.yml
+# never commit upstream edits; Dockerfile is tracked upstream
+!upstream/lidarr-metadata/Dockerfile
