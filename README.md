@@ -23,9 +23,8 @@ Likewise, you should already be running a [Lidarr](https://hub.docker.com/r/linu
 
 > [!IMPORTANT]
 >
-> _Only follow the above MirrorBrainz Mirror Server instructions_<br>
+> _Only follow the above MusicBrainz Mirror Server instructions_<br>
 > AGAIN: do not follow anyone else's instructions to locally set up MusicBrainz
-> <br><br>
 
 ## Repo Summary
 
@@ -34,6 +33,7 @@ Likewise, you should already be running a [Lidarr](https://hub.docker.com/r/linu
 1. Builds an amd64 container image with Lidarr Metadata Server
 2. Adds a bridge config so you can point at your MusicBrainz mirror
 3. Builds a Lidarr Plugin to point Lidarr at this self-hosted API
+4. Hosts the completed plugin distribution zip as a versioned release
 
 **What This Repo Doesn't Do**
 
@@ -43,7 +43,7 @@ Likewise, you should already be running a [Lidarr](https://hub.docker.com/r/linu
 
 **Requirements**
 
-1. Running Lidarr _nightly_ or _plugins_ branch
+1. Running Lidarr _plugins-enabled_ branch
 2. Running MusicBrainz mirror server
 3. Building requires the lidarr source tree (submodule in plugin folder)
 
@@ -59,8 +59,10 @@ This repo includes a plugin that will appear in Lidarr's Metadata settings page 
 **Install the Plugin**
 
 1. In Lidarr, open **System → Plugins**
-2. Paste this repo URL (`https://github.com/HVR88/LM-Bridge`) into the GitHub URL box and click **Install**.
+2. Paste the GitHub repo URL into the GitHub URL box and click **Install**.
 3. Restart Lidarr when prompted.
+
+Example: URL for this repo: `https://github.com/HVR88/LM-Bridge`
 
 If you don't see a System → Plugins page in your Lidarr, switch to the `nightly` branch, such as **[LinuxServer.io's](https://hub.docker.com/r/linuxserver/lidarr)**
 
@@ -213,3 +215,9 @@ Required secrets:
 - `DOCKERHUB_TOKEN`
 
 In GitHub: **Actions → Docker Hub Release → Run workflow**.
+
+# ⚠️ Disclaimer
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS FOR EDUCATIONAL AND INFORMATIONAL PURPOSES ONLY. THE USER ASSUMES ALL RESPONSIBILITY FOR ITS USE OR MISUSE.
+THE USER IS FREE TO USE, MODIFY, AND DISTRIBUTE THE SOFTWARE FOR ANY PURPOSE, SUBJECT TO THE ABOVE DISCLAIMERS AND CONDITIONS.
