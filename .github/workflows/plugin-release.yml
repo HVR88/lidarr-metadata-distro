@@ -3,7 +3,6 @@ name: Plugin Release
 on:
   push:
     tags:
-      - "plugin-v*"
       - "v*"
   workflow_dispatch:
     inputs:
@@ -11,7 +10,7 @@ on:
         description: "Plugin version (e.g. 1.2.3.4)"
         required: true
       tag:
-        description: "Tag to create (default: plugin-v{version})"
+        description: "Tag to create (default: v{version})"
         required: false
 
 jobs:
@@ -38,12 +37,11 @@ jobs:
             ver="${{ inputs.version }}"
             tag="${{ inputs.tag }}"
             if [ -z "$tag" ]; then
-              tag="plugin-v$ver"
+              tag="v$ver"
             fi
           else
             tag="${GITHUB_REF_NAME}"
             ver="$tag"
-            ver="${ver#plugin-v}"
             ver="${ver#v}"
           fi
           echo "version=$ver" >> "$GITHUB_OUTPUT"

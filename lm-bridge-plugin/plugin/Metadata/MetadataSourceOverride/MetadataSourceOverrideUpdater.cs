@@ -223,9 +223,11 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
         private string ResolveAutoEnableMarkerPath()
         {
             var assemblyPath = typeof(MetadataSourceOverrideUpdater).Assembly.Location;
-            var baseDir = assemblyPath.IsNullOrWhiteSpace() ? null : Path.GetDirectoryName(assemblyPath);
-
-            if (baseDir.IsNullOrWhiteSpace())
+            var baseDir = !string.IsNullOrWhiteSpace(assemblyPath)
+                ? Path.GetDirectoryName(assemblyPath)
+                : null;
+            baseDir ??= AppContext.BaseDirectory;
+            if (string.IsNullOrWhiteSpace(baseDir))
             {
                 baseDir = AppContext.BaseDirectory;
             }
