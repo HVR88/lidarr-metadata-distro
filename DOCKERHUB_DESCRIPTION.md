@@ -31,8 +31,8 @@ You should already be running a plugins-enabled [Lidarr](https://hub.docker.com/
 
 **Key Defaults**
 
-1. MusicBrainz DB defaults to `musicbrainz:musicbrainz` unless you override
-2. LMBRIDGE cache DB defaults to `lm_cache_db` with user `lidarr` / password `lidarr`
+1. MusicBrainz DB defaults to user `musicbrainz` and password `musicbrainz`
+2. LM-BRIDGE cache DB defaults user `lidarr` and password `lidarr`
 
 ## Required Lidarr Plugin
 

@@ -19,7 +19,7 @@ _You'll want only the **Compose** file above plus the **Docker Container** below
 
 > [!NOTE]
 >
-> ## **[espressomatic/LMBridge_docker](https://hub.docker.com/r/espressomatic/lmbridge_docker)**
+> ## **[espressomatic/lm-bridge](https://hub.docker.com/r/espressomatic/lm-bridge)**
 
 Likewise, you should already be running a plugins-enabled [Lidarr](https://hub.docker.com/r/linuxserver/lidarr) release plus [MusicBrainz Mirror](https://github.com/metabrainz/musicbrainz-docker) server _(with materialized tables AND fully indexed db)_
 
@@ -50,8 +50,8 @@ Likewise, you should already be running a plugins-enabled [Lidarr](https://hub.d
 
 **Key Defaults**
 
-1. MusicBrainz DB defaults to `musicbrainz:musicbrainz` unless you override
-2. LMBRIDGE cache DB defaults to `lm_cache_db` with user `lidarr` / password `lidarr`
+1. MusicBrainz DB defaults to user `musicbrainz` and password `musicbrainz`
+2. LM-BRIDGE cache DB defaults user `lidarr` and password `lidarr`
 
 ## Lidarr API Plugin (Required)
 
