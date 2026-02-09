@@ -14,6 +14,7 @@ lm-bridge-plugin/Submodules/Lidarr.bak/
 lm-bridge-plugin/plugin/bin/
 lm-bridge-plugin/plugin/obj/
 lm-bridge-plugin/dist/
+lm-bridge-plugin/plugin/PluginInfo.cs
 
 # never commit upstream edits; Dockerfile is tracked upstream
 !upstream/lidarr-metadata/Dockerfile
