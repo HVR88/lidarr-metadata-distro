@@ -4,64 +4,43 @@
 
 # Lidarr/MusicBrainz Bridge
 
-This repo Contains two complimentary parts that run 100% locally:
-
-1. A Lidarr Metadata Server image that bridges to a MusicBrainz mirror
-2. A Plugin to set the URL of this bridge container in Lidarr
+A Lidarr Metadata Server that bridges to a MusicBrainz mirror
 
 **_Thanks to blampe and Typnull for inspiration_** : this wouldn't have been possible without leveraging their previous work
 
-**_If you just want to run the LM Bridge, don't use this repo - it's for building from source_**
+_Download the **Compose** file from [GitHub](https://github.com/HVR88/LM-Bridge/blob/main/docker-compose.yml)_
 
-_You'll want only the **Compose** file above plus the **Docker Container** below:_
-
-> [!NOTE]
->
-> ## **[espressomatic/LMBridge_docker](https://hub.docker.com/r/espressomatic/lmbridge_docker)**
-
-Likewise, you should already be running a plugins-enabled [Lidarr](https://hub.docker.com/r/linuxserver/lidarr) release plus [MusicBrainz Mirror](https://github.com/metabrainz/musicbrainz-docker) server _(with materialized tables AND fully indexed db)_
+You should already be running a plugins-enabled [Lidarr](https://hub.docker.com/r/linuxserver/lidarr) release plus [MusicBrainz Mirror](https://github.com/metabrainz/musicbrainz-docker) server _(with materialized tables AND fully indexed db)_
 
 > [!IMPORTANT]
 >
 > _Follow **the above linked** MusicBrainz Mirror Server instructions_<br>
 
-## Repo Summary
+## Container Summary
 
-**What This Repo Does**
+**Included**
 
-1. Builds an amd64 container image with Lidarr Metadata Server
-2. Adds a bridge config so you can point at your MusicBrainz mirror
-3. Builds a Lidarr Plugin to point Lidarr at this self-hosted API
-4. Hosts the completed plugin distribution zip as a versioned release
-
-**What This Repo Doesn't Do**
-
-1. **It's not a ready-to-deploy container image**
-2. It doesn't build or run the MusicBrainz mirror stack
-3. It doesn't build or run Lidarr
+1. amd64 image with Lidarr Metadata Server
+2. Includes a bridge config so you can point at your MusicBrainz mirror
 
 **Requirements**
 
-1. Running Lidarr _plugins-enabled_ branch
-2. Running MusicBrainz mirror server
-3. Building requires the lidarr source tree (submodule in plugin folder)
+1. Running MusicBrainz mirror server container
+2. Running Lidarr _plugins-enabled_ container
+3. LM-Bridge Plugin
 
 **Key Defaults**
 
 1. MusicBrainz DB defaults to `musicbrainz:musicbrainz` unless you override
 2. LMBRIDGE cache DB defaults to `lm_cache_db` with user `abc` / password `abc`
 
-## Lidarr API Plugin (Required)
-
-This repo includes a plugin that will appear in Lidarr's Metadata settings page after being installed. Lidarr must have this plugin installed to talk to the bridge on your network.
+## Lidarr/MusicBrainz Bridge API Plugin
 
 **Install the Plugin**
 
 1. In Lidarr, open **System → Plugins**
-2. Paste the GitHub repo URL into the GitHub URL box and click **Install**.
+2. Paste the GitHub repo URL `https://github.com/HVR88/LM-Bridge` into the GitHub URL box and click **Install**.
 3. Restart Lidarr when prompted.
-
-Example: URL for this repo: `https://github.com/HVR88/LM-Bridge`
 
 If you don't see a System → Plugins page in your Lidarr, switch to the `nightly` branch, such as **[LinuxServer.io's](https://hub.docker.com/r/linuxserver/lidarr)**
 
@@ -121,49 +100,6 @@ scripts/init-mbdb.sh
 
 The script also creates the cache tables (`fanart`, `tadb`, `wikipedia`, `artist`, `album`, `spotify`) inside `lm_cache_db` to avoid runtime errors like `relation "tadb" does not exist`.
 
-## Technical - Build And Run
-
-## Clone
-
-Recommended (pulls the upstream submodule automatically):
-
-```bash
-git clone --recurse-submodules https://github.com/HVR88/LM-Bridge.git
-```
-
-If you already cloned without submodules:
-
-```bash
-cd lm-bridge
-git submodule update --init --recursive
-```
-
-Use the helper script (defaults to `linux/amd64` and tag `lm-bridge:latest`):
-
-```bash
-scripts/build-image.sh
-```
-
-Override defaults:
-
-```bash
-PLATFORMS=linux/amd64 LMBRIDGE_IMAGE=lm-bridge:latest scripts/build-image.sh
-```
-
-Multi-arch build (push required):
-
-```bash
-PLATFORMS=linux/amd64,linux/arm64 PUSH=1 LMBRIDGE_IMAGE=lm-bridge:latest scripts/build-image.sh
-```
-
-Start the container using the provided settings file (Compose will build the image if it doesn't exist locally):
-
-```bash
-docker compose -f overlay/deploy/lm-bridge-settings.yml up -d
-```
-
-Note: Compose defaults to `lm-bridge:latest`. Build locally first, or set `LMBRIDGE_IMAGE` to a tag you’ve already built or pushed.
-
 If you want to run it on the **same Docker network** as your MusicBrainz mirror and auto-run the **init container**, use the repo’s root `docker-compose.yml` (it’s already there if you cloned the repo). Then run:
 
 ```bash
@@ -203,17 +139,6 @@ If it fails, check logs:
 ```bash
 docker compose logs -f api
 ```
-
-## Docker Hub Release (Manual)
-
-This repo includes a GitHub Actions workflow that can build and push the image to Docker Hub on demand.
-
-Required secrets:
-
-- `DOCKERHUB_USERNAME`
-- `DOCKERHUB_TOKEN`
-
-In GitHub: **Actions → Docker Hub Release → Run workflow**.
 
 # ⚠️ Disclaimer
 
