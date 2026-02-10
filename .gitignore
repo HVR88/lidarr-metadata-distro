@@ -6,6 +6,7 @@ research/
 
 # Local noise
 **/.DS_Store
+lm-bridge.code-workspace
 
 # Deploy outputs
 deploy/.env
