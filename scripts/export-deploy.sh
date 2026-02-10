@@ -49,6 +49,7 @@ if [[ -n "${DEPLOY_REPO}" ]]; then
     --exclude=".env" \
     --exclude=".env.*" \
     --exclude=".DS_Store" \
+    --exclude=".git" \
     "${stage}/" "${DEPLOY_REPO}/"
   echo "Synced deploy/ to ${DEPLOY_REPO}"
 fi
