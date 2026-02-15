@@ -26,6 +26,19 @@ def main() -> int:
             file=sys.stderr,
         )
 
+    # Map cache DB envs into upstream CACHE_CONFIG overrides (avoid upstream edits)
+    cache_user = os.environ.get("POSTGRES_CACHE_USER") or os.environ.get("LMBRIDGE_CACHE_USER")
+    cache_password = os.environ.get("POSTGRES_CACHE_PASSWORD") or os.environ.get("LMBRIDGE_CACHE_PASSWORD")
+    cache_db = os.environ.get("POSTGRES_CACHE_DB") or os.environ.get("LMBRIDGE_CACHE_DB")
+    cache_table_keys = ("fanart", "tadb", "wikipedia", "artist", "album", "spotify")
+    for key in cache_table_keys:
+        if cache_user and f"CACHE_CONFIG__{key}__user" not in os.environ:
+            os.environ[f"CACHE_CONFIG__{key}__user"] = cache_user
+        if cache_password and f"CACHE_CONFIG__{key}__password" not in os.environ:
+            os.environ[f"CACHE_CONFIG__{key}__password"] = cache_password
+        if cache_db and f"CACHE_CONFIG__{key}__db_name" not in os.environ:
+            os.environ[f"CACHE_CONFIG__{key}__db_name"] = cache_db
+
     # Register overlay config (adds BRIDGE to CONFIGS)
     import lidarrmetadata.bridge_config  # noqa: F401
 
