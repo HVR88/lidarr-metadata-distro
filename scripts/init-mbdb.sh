@@ -139,13 +139,47 @@ SQL
 } > "$CACHE_SQL"
 
 cache_tables=(fanart tadb wikipedia artist album spotify)
+
+# Try to align ownership/privileges for existing cache tables/functions.
+for table in "${cache_tables[@]}"; do
+  owner="$(psql_run "$LMBRIDGE_CACHE_DB" -tAc "SELECT tableowner FROM pg_tables WHERE schemaname = current_schema() AND tablename = '${table}';" | tr -d '[:space:]')"
+  if [[ -n "$owner" && "$owner" != "$LMBRIDGE_CACHE_USER" ]]; then
+    if ! psql_run "$LMBRIDGE_CACHE_DB" -v ON_ERROR_STOP=1 -c "ALTER TABLE \"${table}\" OWNER TO \"${LMBRIDGE_CACHE_USER}\";" ; then
+      echo "WARNING: Unable to change owner for table ${table}; will grant privileges and skip indexes/triggers if not owner." >&2
+    fi
+  fi
+  if [[ -n "$owner" ]]; then
+    psql_run "$LMBRIDGE_CACHE_DB" -v ON_ERROR_STOP=1 \
+      -c "GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE \"${table}\" TO \"${LMBRIDGE_CACHE_USER}\";"
+  fi
+done
+
+func_owner="$(psql_run "$LMBRIDGE_CACHE_DB" -tAc "SELECT pg_get_userbyid(p.proowner) FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE p.proname = 'cache_updated' AND n.nspname = current_schema();" | tr -d '[:space:]')"
+if [[ -n "$func_owner" && "$func_owner" != "$LMBRIDGE_CACHE_USER" ]]; then
+  if ! psql_run "$LMBRIDGE_CACHE_DB" -v ON_ERROR_STOP=1 -c "ALTER FUNCTION cache_updated() OWNER TO \"${LMBRIDGE_CACHE_USER}\";" ; then
+    echo "WARNING: Unable to change owner for function cache_updated; will avoid replacing it." >&2
+  fi
+fi
+
 for table in "${cache_tables[@]}"; do
   cat >> "$CACHE_SQL" <<SQL
 CREATE TABLE IF NOT EXISTS ${table} (key varchar PRIMARY KEY, expires timestamp with time zone, updated timestamp with time zone default current_timestamp, value bytea);
-CREATE INDEX IF NOT EXISTS ${table}_expires_idx ON ${table}(expires);
-CREATE INDEX IF NOT EXISTS ${table}_updated_idx ON ${table}(updated DESC) INCLUDE (key);
-DROP TRIGGER IF EXISTS ${table}_updated_trigger ON ${table};
-CREATE TRIGGER ${table}_updated_trigger BEFORE UPDATE ON ${table} FOR EACH ROW WHEN (OLD.value IS DISTINCT FROM NEW.value) EXECUTE PROCEDURE cache_updated();
+DO \$do\$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM pg_tables
+        WHERE schemaname = current_schema()
+          AND tablename = '${table}'
+          AND tableowner = current_user
+    ) THEN
+        EXECUTE 'CREATE INDEX IF NOT EXISTS ${table}_expires_idx ON ${table}(expires);';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS ${table}_updated_idx ON ${table}(updated DESC) INCLUDE (key);';
+        EXECUTE 'DROP TRIGGER IF EXISTS ${table}_updated_trigger ON ${table};';
+        EXECUTE 'CREATE TRIGGER ${table}_updated_trigger BEFORE UPDATE ON ${table} FOR EACH ROW WHEN (OLD.value IS DISTINCT FROM NEW.value) EXECUTE PROCEDURE cache_updated();';
+    END IF;
+END
+\$do\$;
 SQL
 done
 
