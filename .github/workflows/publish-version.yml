@@ -39,7 +39,11 @@ jobs:
           from pathlib import Path
 
           version_path = Path("VERSION")
-          version = version_path.read_text().strip()
+          version = version_path.read_text()
+          # Normalize accidental literal "\n" sequences and whitespace
+          version = version.replace("\\n", "").strip()
+          if version.startswith("v"):
+            version = version[1:]
           m = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)\.(\d{1,3})", version)
           if not m:
             raise SystemExit(f"VERSION format invalid: {version!r}")
