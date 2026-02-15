@@ -1,4 +1,5 @@
 from lidarrmetadata.config import DefaultConfig, ConfigMeta
+import copy
 import six
 
 class BridgeConfig(six.with_metaclass(ConfigMeta, DefaultConfig)):
@@ -29,3 +30,11 @@ class BridgeConfig(six.with_metaclass(ConfigMeta, DefaultConfig)):
 
     USE_CACHE = True
     ENABLE_STATS = False
+
+    # Ensure cache config supports user/password/db_name overrides
+    CACHE_CONFIG = copy.deepcopy(DefaultConfig.CACHE_CONFIG)
+    for _key in ('fanart', 'tadb', 'wikipedia', 'artist', 'album', 'spotify'):
+        if _key in CACHE_CONFIG:
+            CACHE_CONFIG[_key].setdefault('user', 'abc')
+            CACHE_CONFIG[_key].setdefault('password', 'abc')
+            CACHE_CONFIG[_key].setdefault('db_name', 'lm_cache_db')
