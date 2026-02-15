@@ -24,6 +24,10 @@ You should already be running a plugins-enabled [Lidarr](https://hub.docker.com/
 docker compose up -d
 ```
 
+## Version
+
+Deploy version: `1.1.0.00`
+
 Optional cache settings (in `.env`):
 - `LMBRIDGE_CACHE_SCHEMA` to use a dedicated schema (default: `public`).
 - `LMBRIDGE_CACHE_FAIL_OPEN=true` to start the API with cache disabled if init cannot create cache tables.
