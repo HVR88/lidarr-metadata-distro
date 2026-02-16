@@ -26,7 +26,7 @@ docker compose up -d
 
 ## Version
 
-Deploy version: `1.1.7.00`
+Deploy version: `1.1.8.00`
 
 Optional cache settings (in `.env`):
 - `LMBRIDGE_CACHE_SCHEMA` to use a dedicated schema (default: `public`).
