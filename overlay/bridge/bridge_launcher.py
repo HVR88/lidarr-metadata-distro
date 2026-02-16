@@ -42,8 +42,17 @@ def main() -> int:
     # Register overlay config (adds BRIDGE to CONFIGS)
     import lidarrmetadata.bridge_config  # noqa: F401
 
-    # Optional runtime patches
-    if os.environ.get("LMBRIDGE_APPLY_PATCHES", "").lower() in {"1", "true", "yes"}:
+    # Optional runtime patches (auto-enable if MITM hook configured)
+    apply_patches = os.environ.get("LMBRIDGE_APPLY_PATCHES", "").lower() in {"1", "true", "yes"}
+    if not apply_patches and (
+        os.environ.get("LMBRIDGE_MITM_MODULE")
+        or os.environ.get("LMBRIDGE_MITM_PATH")
+        or os.environ.get("LMBRIDGE_DB_HOOK_MODULE")
+        or os.environ.get("LMBRIDGE_DB_HOOK_PATH")
+    ):
+        apply_patches = True
+
+    if apply_patches:
         from lidarrmetadata import app_patch
 
         app_patch.apply()
