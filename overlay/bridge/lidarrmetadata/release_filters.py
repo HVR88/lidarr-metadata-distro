@@ -10,7 +10,10 @@ def _parse_list(value: Optional[str]) -> List[str]:
 
 
 def _release_formats(release: Dict[str, Any]) -> Iterable[str]:
-    for medium in release.get("Media") or []:
+    media_list = release.get("Media")
+    if media_list is None:
+        media_list = release.get("media")
+    for medium in media_list or []:
         fmt = medium.get("Format") if isinstance(medium, dict) else None
         if fmt:
             yield str(fmt).lower()
@@ -48,13 +51,18 @@ def after_query(results: Any, context: Dict[str, Any]) -> Any:
             continue
 
         releases = album.get("Releases") if isinstance(album, dict) else None
+        if releases is None and isinstance(album, dict):
+            releases = album.get("releases")
         if isinstance(releases, list):
             filtered = [
                 release for release in releases
                 if not _has_excluded_format(release, excluded_tokens)
             ]
             if filtered:
-                album["Releases"] = filtered
+                if "Releases" in album:
+                    album["Releases"] = filtered
+                else:
+                    album["releases"] = filtered
 
         try:
             row["album"] = json.dumps(album, separators=(",", ":"))
