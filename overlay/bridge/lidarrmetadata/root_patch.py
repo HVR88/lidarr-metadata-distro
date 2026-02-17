@@ -1,11 +1,29 @@
 import html
+import json
 import os
 from pathlib import Path
+import time
 
 import lidarrmetadata
 from lidarrmetadata import provider
 from lidarrmetadata.app import no_cache
 from lidarrmetadata.version_patch import _read_version
+
+_START_TIME = time.time()
+
+
+def _format_uptime(seconds: float) -> str:
+    total = max(0, int(seconds))
+    days, rem = divmod(total, 86400)
+    hours, rem = divmod(rem, 3600)
+    minutes, secs = divmod(rem, 60)
+    if days:
+        return f"{days}d {hours}h {minutes}m"
+    if hours:
+        return f"{hours}h {minutes}m"
+    if minutes:
+        return f"{minutes}m {secs}s"
+    return f"{secs}s"
 
 
 def register_root_route() -> None:
@@ -18,14 +36,19 @@ def register_root_route() -> None:
         if rule.rule == "/assets/lmbridge-icon.png":
             break
     else:
+
         @upstream_app.app.route("/assets/lmbridge-icon.png", methods=["GET"])
         async def _lmbridge_icon():
-            return await send_file(assets_dir / "lmbridge-icon.png", mimetype="image/png")
+            return await send_file(
+                assets_dir / "lmbridge-icon.png", mimetype="image/png"
+            )
 
     async def _lmbridge_root_route():
         replication_date = None
         try:
-            vintage_providers = provider.get_providers_implementing(provider.DataVintageMixin)
+            vintage_providers = provider.get_providers_implementing(
+                provider.DataVintageMixin
+            )
             if vintage_providers:
                 replication_date = await vintage_providers[0].data_vintage()
         except Exception:
@@ -39,16 +62,42 @@ def register_root_route() -> None:
 
         info = {
             "version": fmt(_read_version()),
+            "mbms_plus_version": fmt(os.getenv("MBMS_PLUS_VERSION")),
             "metadata_version": fmt(lidarrmetadata.__version__),
             "branch": fmt(os.getenv("GIT_BRANCH")),
             "commit": fmt(os.getenv("COMMIT_HASH")),
             "replication_date": fmt(replication_date),
+            "uptime": _format_uptime(time.time() - _START_TIME),
         }
+        try:
+            from lidarrmetadata import release_filters
+
+            exclude = release_filters.get_runtime_media_exclude() or []
+            include = release_filters.get_runtime_media_include() or []
+            keep_only = release_filters.get_runtime_media_keep_only()
+            prefer = release_filters.get_runtime_media_prefer()
+            enabled = bool(exclude or include or keep_only or prefer)
+            config = {
+                "enabled": enabled,
+                "exclude_media_formats": exclude,
+                "include_media_formats": include,
+                "keep_only_media_count": keep_only,
+                "prefer": prefer,
+            }
+        except Exception:
+            config = {"enabled": False}
         safe = {key: html.escape(val) for key, val in info.items()}
-        base_path = (request.script_root or "").rstrip("/")
+        base_path = (upstream_app.app.config.get("ROOT_PATH") or "").rstrip("/")
+        if base_path and not base_path.startswith("/"):
+            base_path = "/" + base_path
         version_url = f"{base_path}/version" if base_path else "/version"
-        config_url = f"{base_path}/config/release-filter" if base_path else "/config/release-filter"
-        icon_url = f"{base_path}/assets/lmbridge-icon.png" if base_path else "/assets/lmbridge-icon.png"
+        icon_url = (
+            f"{base_path}/assets/lmbridge-icon.png"
+            if base_path
+            else "/assets/lmbridge-icon.png"
+        )
+        mbms_url = "https://github.com/HVR88/MBMS_PLUS"
+        config_json = html.escape(json.dumps(config, indent=2, sort_keys=True))
 
         page = f"""<!doctype html>
 <html lang="en">
@@ -150,6 +199,19 @@ def register_root_route() -> None:
       flex-wrap: wrap;
       gap: 10px;
     }}
+    .config {{
+      margin-top: 20px;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-family: "JetBrains Mono", "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      max-height: 260px;
+      overflow: auto;
+    }}
     .link {{
       display: inline-flex;
       align-items: center;
@@ -191,37 +253,38 @@ def register_root_route() -> None:
     <section class="card">
       <div class="hero">
         <img src="{html.escape(icon_url)}" alt="LM Bridge" width="500" />
-        <h1 class="hero-title">LM Bridge - Metadata Handler for Lidarr_</h1>
+        <h1 class="hero-title">LM Bridge - Metadata Handler for Lidarr</h1>
         <span class="hero-sub"><em>FAST • Local • Private</em></span>
       </div>
-      <p class="subtitle">Bridge + metadata service details in one place.</p>
-      <div class="grid">
-        <div class="pill">
-          <div class="label">LM Bridge Version</div>
-          <div class="value">{safe["version"]}</div>
-        </div>
-        <div class="pill">
-          <div class="label">Metadata Version</div>
-          <div class="value">{safe["metadata_version"]}</div>
-        </div>
-        <div class="pill">
-          <div class="label">Replication Date</div>
-          <div class="value">{safe["replication_date"]}</div>
-        </div>
-        <div class="pill">
-          <div class="label">Commit</div>
-          <div class="value">{safe["commit"]}</div>
-        </div>
-        <div class="pill">
-          <div class="label">Branch</div>
-          <div class="value">{safe["branch"]}</div>
-        </div>
+
+        <div class="grid">
+          <div class="pill">
+            <div class="label">LM Bridge Version</div>
+            <div class="value">{safe["version"]}</div>
+          </div>
+          <div class="pill">
+            <div class="label">MBMS PLUS VERSION</div>
+            <div class="value">{safe["mbms_plus_version"]}</div>
+          </div>
+          <div class="pill">
+            <div class="label">Metadata Version</div>
+            <div class="value">{safe["metadata_version"]}</div>
+          </div>
+          <div class="pill">
+            <div class="label">Replication Date</div>
+            <div class="value">{safe["replication_date"]}</div>
+          </div>
+          <div class="pill">
+            <div class="label">Uptime</div>
+            <div class="value">{safe["uptime"]}</div>
+          </div>
       </div>
       <div class="links">
         <a class="link" href="{html.escape(version_url)}">Version JSON</a>
-        <a class="link" href="{html.escape(config_url)}">Release Filter Config</a>
+        <a class="link" href="{html.escape(mbms_url)}">MBMS PLUS Repo</a>
       </div>
-      <div class="foot">Tip: Use <span class="accent">/album/&lt;mbid&gt;</span> to fetch release group JSON.</div>
+      <pre class="config">{config_json}</pre>
+      <div class="foot">Tip: Use <span class="accent">/album/&lt;mbid&gt;</span> to fetch release group JSON | <span class="accent">/artist/&lt;mbid&gt;</span> to fetch artist JSON.</div>
     </section>
   </main>
 </body>
