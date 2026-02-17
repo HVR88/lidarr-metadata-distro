@@ -2,17 +2,23 @@
   <img src="https://raw.githubusercontent.com/HVR88/LM-Bridge-DEV/main/assets/lmbridge-icon.png" alt="LM Bridge" width="500" />
 </p>
 
-# <p align="center">**_Lidarr Metadata Bridge_**<br><sub>**_FAST Local, Private Queries_**</sub></p>
+# <p align="center">**_Lidarr Metadata Bridge_**<br><sub>**_FAST • Local • Private_**</sub></p>
 
 ## Introduction
 
-This is a stand-alone _LM-Bridge_ release for existing MusicBrainz mirror installations.
+This is a stand-alone _LM Bridge_ release for existing MusicBrainz mirror installations.
 
-If you don't have a MusicBrainz mirror yet, then use our [**MBNMS PLUS**](https://github.com/HVR88/MBMS_PLUS). It includes _LM-Bridge_ and a fully automated MusicBrainz installation.
+**LM Bridge Features**
+
+- Helps to make Lidarr feel less like _hot garbage_
+- Direct access to local MusicBrainz mirror server for all queries
+- Caching database
+- Media Format filtering - remove vinyl or other issues from all releases
+- Extendable hook mechanism allows others to add functionality
 
 > [!IMPORTANT]
 >
-> _Follow **the below linked** MusicBrainz Mirror Server instructions_<br>
+> If you don't have a MusicBrainz mirror yet, use [**MBMS PLUS**](https://github.com/HVR88/MBMS_PLUS), our automated MusicBrainz installation with LM Bridge built-in.
 
 ## Quick start
 
@@ -20,7 +26,9 @@ If you don't have a MusicBrainz mirror yet, then use our [**MBNMS PLUS**](https:
 
 You should already be running a plugins-enabled [Lidarr](https://hub.docker.com/r/linuxserver/lidarr) release plus [MusicBrainz Mirror](https://github.com/metabrainz/musicbrainz-docker) server _(with materialized tables AND fully indexed db)_
 
-### 2. Download the LM-Bridge project
+### 2. Download the LM Bridge project
+
+**LM Bridge needs to be installed on the same host as MusicBrainz, whether that be a physical machine, VM or LXC.**
 
 ```
 mkdir -p /opt/docker/
@@ -49,8 +57,8 @@ docker compose up -d
 
 ## Version
 
-Deploy version: `1.5.0.00`
-Deploy version: `1.5.0.00`
+Deploy version: `1.6.0.00`
+Deploy version: `1.6.0.00`
 
 Optional cache settings (in `.env`):
 

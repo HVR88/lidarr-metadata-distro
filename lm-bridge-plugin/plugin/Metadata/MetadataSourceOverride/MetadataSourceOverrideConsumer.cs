@@ -9,7 +9,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
 {
     public class MetadataSourceOverrideConsumer : IMetadata
     {
-        public const string DisplayName = "Lidarr/MusicBrainz Bridge API";
+        public const string DisplayName = "LM Bridge Settings";
         public string Name => DisplayName;
         public Type ConfigContract => typeof(MetadataSourceOverrideSettings);
         public ProviderMessage? Message => null;
