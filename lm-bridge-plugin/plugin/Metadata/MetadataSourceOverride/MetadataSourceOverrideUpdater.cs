@@ -249,7 +249,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             {
                 excludeTokens = Array.Empty<string>();
             }
-            var keepOnlyMediaCount = settings.KeepOnlyMediaCount.GetValueOrDefault();
+            var keepOnlyMediaCount = Math.Clamp(settings.KeepOnlyMediaCount.GetValueOrDefault(), 0, 999);
             var prefer = settings.Prefer == (int)MediaPreferOption.Analog ? "analog" : "digital";
             var payload = new ReleaseFilterPayload
             {

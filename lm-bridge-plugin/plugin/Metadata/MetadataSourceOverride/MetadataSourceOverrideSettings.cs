@@ -35,9 +35,14 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             });
 
             RuleFor(x => x.KeepOnlyMediaCount)
-                .GreaterThan(0)
+                .GreaterThanOrEqualTo(0)
                 .When(x => x.KeepOnlyMediaCount.HasValue)
-                .WithMessage("Keep only # media must be greater than 0.");
+                .WithMessage("Keep only # media must be 0 or greater.");
+
+            RuleFor(x => x.KeepOnlyMediaCount)
+                .LessThanOrEqualTo(999)
+                .When(x => x.KeepOnlyMediaCount.HasValue)
+                .WithMessage("Keep only # media must be 999 or less.");
 
             RuleFor(x => x.ExcludeMediaFormats)
                 .Custom((values, context) =>
@@ -113,16 +118,16 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
         [FieldDefinition(0, Label = "API URL", Type = FieldType.Url, Placeholder = DefaultMetadataSource, Section = MetadataSectionType.Metadata, HelpText = "HTTP://ADDRESS:PORT of your LM Bridge Instance")]
         public string MetadataSource { get; set; } = DefaultMetadataSource;
 
-        [FieldDefinition(1, Label = "Exclude Media Formats", HelpText = "List of formats to remove from releases: vinyl, cassette, CD-R, etc. Special aliases: analog / digital", HelpLink = "https://github.com/HVR88/LM-Bridge", Type = FieldType.Tag, Section = MetadataSectionType.Metadata)]
+        [FieldDefinition(1, Label = "Exclude Media Formats", HelpText = "List of formats to remove from releases: vinyl, cassette, flexi, CD-R, etc. (Special aliases: analog / digital)", HelpTextWarning = "Mutually exclusive with Keep only formats.", HelpLink = "https://github.com/HVR88/LM-Bridge", Type = FieldType.Tag, Placeholder = "vinyl", Section = MetadataSectionType.Metadata)]
         public IEnumerable<string> ExcludeMediaFormats { get; set; } = Array.Empty<string>();
 
-        [FieldDefinition(2, Label = "Keep only formats", HelpText = "Only show these media formats for releases", HelpLink = "https://github.com/HVR88/LM-Bridge", Type = FieldType.Tag, Section = MetadataSectionType.Metadata)]
+        [FieldDefinition(2, Label = "or Keep only formats", HelpText = "Only show these media formats for releases: SACD, CD, Digital Media, etc. (Special aliases: analog / digital)", HelpTextWarning = "Mutually exclusive with Exclude Media Formats.", HelpLink = "https://github.com/HVR88/LM-Bridge", Type = FieldType.Tag, Placeholder = "digital", Section = MetadataSectionType.Metadata)]
         public IEnumerable<string> KeepOnlyFormats { get; set; } = Array.Empty<string>();
 
-        [FieldDefinition(3, Label = "Keep only # media", HelpText = "Only keep and show a maximim number of media issues per release", Type = FieldType.Number, Section = MetadataSectionType.Metadata)]
+        [FieldDefinition(3, Label = "Max. # of Media", HelpText = "Only keep and show a maximim number of media issues per release (0=keep all, default)", Type = FieldType.Number, Section = MetadataSectionType.Metadata)]
         public int? KeepOnlyMediaCount { get; set; }
 
-        [FieldDefinition(4, Label = "Prefer", HelpText = "when limiting media issues, prefer digital or analog formats?", HelpLink = "https://github.com/HVR88/LM-Bridge", Type = FieldType.Select, SelectOptions = typeof(MediaPreferOption), Section = MetadataSectionType.Metadata)]
+        [FieldDefinition(4, Label = "Prefer", HelpText = "when Max # set.(Digital or Analog format)", HelpLink = "https://github.com/HVR88/LM-Bridge", Type = FieldType.Select, SelectOptions = typeof(MediaPreferOption), Section = MetadataSectionType.Metadata)]
         public int Prefer { get; set; } = (int)MediaPreferOption.Digital;
 
         public bool UseAtOwnRisk { get; set; } = true;
