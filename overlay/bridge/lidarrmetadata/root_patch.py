@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import re
 import time
+from typing import Optional
 
 import lidarrmetadata
 from lidarrmetadata import provider
@@ -12,7 +13,7 @@ from lidarrmetadata.version_patch import _read_version
 
 _START_TIME = time.time()
 _LIDARR_VERSION_FILE = Path(os.environ.get("LMBRIDGE_LIDARR_VERSION_FILE", "/metadata/lidarr_version.txt"))
-_LAST_LIDARR_VERSION: str | None = None
+_LAST_LIDARR_VERSION: Optional[str] = None
 
 
 def _format_uptime(seconds: float) -> str:
@@ -28,14 +29,70 @@ def _format_uptime(seconds: float) -> str:
         return f"{minutes}m {secs}s"
     return f"{secs}s"
 
-def _env_first(*names: str) -> str | None:
+def _env_first(*names: str) -> Optional[str]:
     for name in names:
         value = os.getenv(name)
         if value is not None and str(value).strip():
             return str(value).strip()
     return None
 
-def _read_last_lidarr_version() -> str | None:
+
+def _format_replication_schedule() -> Optional[str]:
+    enabled = _env_first("MUSICBRAINZ_REPLICATION_ENABLED")
+    if enabled is not None and enabled.lower() in {"0", "false", "no", "off"}:
+        return "disabled"
+
+    schedule = _env_first(
+        "MBMS_REPLICATION_SCHEDULE",
+        "MUSICBRAINZ_REPLICATION_SCHEDULE",
+        "MUSICBRAINZ_REPLICATION_CRON",
+    )
+    time_of_day = _env_first("MUSICBRAINZ_REPLICATION_TIME")
+
+    if schedule:
+        if time_of_day and time_of_day not in schedule:
+            return f"{schedule} @ {time_of_day}"
+        return schedule
+
+    if time_of_day:
+        return f"daily @ {time_of_day}"
+
+    return None
+
+
+def _format_index_schedule() -> Optional[str]:
+    enabled = _env_first("MUSICBRAINZ_INDEXING_ENABLED")
+    if enabled is not None and enabled.lower() in {"0", "false", "no", "off"}:
+        return "disabled"
+
+    schedule = _env_first(
+        "MBMS_INDEX_SCHEDULE",
+        "MUSICBRAINZ_INDEXING_SCHEDULE",
+        "MUSICBRAINZ_INDEXING_CRON",
+    )
+    frequency = _env_first("MUSICBRAINZ_INDEXING_FREQUENCY")
+    day = _env_first("MUSICBRAINZ_INDEXING_DAY")
+    time_of_day = _env_first("MUSICBRAINZ_INDEXING_TIME")
+
+    if schedule:
+        if time_of_day and time_of_day not in schedule:
+            return f"{schedule} @ {time_of_day}"
+        return schedule
+
+    parts = []
+    if frequency:
+        parts.append(frequency)
+    if day:
+        parts.append(day)
+    if time_of_day:
+        parts.append(f"@ {time_of_day}")
+
+    if parts:
+        return " ".join(parts)
+
+    return None
+
+def _read_last_lidarr_version() -> Optional[str]:
     global _LAST_LIDARR_VERSION
     if _LAST_LIDARR_VERSION is not None:
         return _LAST_LIDARR_VERSION
@@ -47,7 +104,7 @@ def _read_last_lidarr_version() -> str | None:
     return _LAST_LIDARR_VERSION
 
 
-def _capture_lidarr_version(user_agent: str | None) -> None:
+def _capture_lidarr_version(user_agent: Optional[str]) -> None:
     if not user_agent:
         return
     match = re.search(r"\bLidarr/([0-9A-Za-z.\-]+)", user_agent)
@@ -109,20 +166,8 @@ def register_root_route() -> None:
         info = {
             "version": fmt(_read_version()),
             "mbms_plus_version": fmt(os.getenv("MBMS_PLUS_VERSION")),
-            "mbms_replication_schedule": fmt(
-                _env_first(
-                    "MBMS_REPLICATION_SCHEDULE",
-                    "MUSICBRAINZ_REPLICATION_SCHEDULE",
-                    "MUSICBRAINZ_REPLICATION_CRON",
-                )
-            ),
-            "mbms_index_schedule": fmt(
-                _env_first(
-                    "MBMS_INDEX_SCHEDULE",
-                    "MUSICBRAINZ_INDEXING_SCHEDULE",
-                    "MUSICBRAINZ_INDEXING_CRON",
-                )
-            ),
+            "mbms_replication_schedule": fmt(_format_replication_schedule()),
+            "mbms_index_schedule": fmt(_format_index_schedule()),
             "lidarr_version": fmt(_read_last_lidarr_version()),
             "metadata_version": fmt(lidarrmetadata.__version__),
             "branch": fmt(os.getenv("GIT_BRANCH")),
