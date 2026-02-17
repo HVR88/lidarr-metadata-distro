@@ -183,19 +183,6 @@ def register_root_route() -> None:
             "replication_date": fmt(replication_date),
             "uptime": _format_uptime(time.time() - _START_TIME),
         }
-        show_mbms = _env_any(
-            "MBMS_PLUS_VERSION",
-            "MBMS_REPLICATION_SCHEDULE",
-            "MBMS_INDEX_SCHEDULE",
-            "MUSICBRAINZ_REPLICATION_SCHEDULE",
-            "MUSICBRAINZ_REPLICATION_TIME",
-            "MUSICBRAINZ_REPLICATION_ENABLED",
-            "MUSICBRAINZ_INDEXING_SCHEDULE",
-            "MUSICBRAINZ_INDEXING_TIME",
-            "MUSICBRAINZ_INDEXING_DAY",
-            "MUSICBRAINZ_INDEXING_FREQUENCY",
-            "MUSICBRAINZ_INDEXING_ENABLED",
-        )
         try:
             from lidarrmetadata import release_filters
 
@@ -273,25 +260,22 @@ def register_root_route() -> None:
             "__MBMS_URL__": html.escape(mbms_url),
             "__CONFIG_HTML__": config_html,
         }
-        if show_mbms:
-            mbms_pills = "\n".join(
-                [
-                    '          <div class="pill">',
-                    '            <div class="label">MBMS PLUS VERSION</div>',
-                    f'            <div class="value">{safe["mbms_plus_version"]}</div>',
-                    "          </div>",
-                    '          <div class="pill">',
-                    '            <div class="label">MBMS Replication Schedule</div>',
-                    f'            <div class="value">{safe["mbms_replication_schedule"]}</div>',
-                    "          </div>",
-                    '          <div class="pill">',
-                    '            <div class="label">MBMS Index Schedule</div>',
-                    f'            <div class="value">{safe["mbms_index_schedule"]}</div>',
-                    "          </div>",
-                ]
-            )
-        else:
-            mbms_pills = ""
+        mbms_pills = "\n".join(
+            [
+                '          <div class="pill">',
+                '            <div class="label">MBMS PLUS VERSION</div>',
+                f'            <div class="value">{safe["mbms_plus_version"]}</div>',
+                "          </div>",
+                '          <div class="pill">',
+                '            <div class="label">MBMS Replication Schedule</div>',
+                f'            <div class="value">{safe["mbms_replication_schedule"]}</div>',
+                "          </div>",
+                '          <div class="pill">',
+                '            <div class="label">MBMS Index Schedule</div>',
+                f'            <div class="value">{safe["mbms_index_schedule"]}</div>',
+                "          </div>",
+            ]
+        )
         replacements["__MBMS_PILLS__"] = mbms_pills
         page = template
         for key, value in replacements.items():
