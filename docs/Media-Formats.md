@@ -5,6 +5,8 @@ This page lists the MusicBrainz release formats grouped into the meta-format buc
 Notes:
 - Meta-format keys are the filter tokens (shown in parentheses).
 - Format names are the exact MusicBrainz release format values.
+- In the Lidarr plugin UI, add terms in the Exclude/Include fields by typing a value and pressing `Tab` to create a chip, then continue with the next term.
+- Substring matching is supported, so a partial term can match multiple formats (for example, `vinyl` matches `12" Vinyl`, `10" Vinyl`, and `7" Vinyl`).
 
 ## Digital
 
