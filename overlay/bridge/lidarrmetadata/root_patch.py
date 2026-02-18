@@ -318,14 +318,25 @@ def register_root_route() -> None:
             text = str(value).strip()
             return text if text else empty_label
 
+        media_formats_url = "https://github.com/HVR88/LM-Bridge"
+        exclude_label = (
+            'Exclude <a class="config-link" href="{}">Media Formats</a>'.format(
+                html.escape(media_formats_url)
+            )
+        )
+        include_label = (
+            'Include <a class="config-link" href="{}">Media Formats</a>'.format(
+                html.escape(media_formats_url)
+            )
+        )
         config_rows = [
             ("Filtering Enabled", fmt_config_value(config.get("enabled"))),
             (
-                "Exclude Media Formats",
+                exclude_label,
                 fmt_config_value(config.get("exclude_media_formats")),
             ),
             (
-                "Include Media Formats",
+                include_label,
                 fmt_config_value(config.get("include_media_formats"), empty_label="all"),
             ),
             (
@@ -340,7 +351,7 @@ def register_root_route() -> None:
         config_html = "\n".join(
             [
                 '          <div class="config-row">'
-                f'<div class="config-label">{html.escape(label)}</div>'
+                f'<div class="config-label">{label}</div>'
                 f'<div class="config-value">{html.escape(value)}</div>'
                 "</div>"
                 for label, value in config_rows
