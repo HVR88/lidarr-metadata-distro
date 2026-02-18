@@ -56,6 +56,8 @@ docker compose up -d
 >
 > The compose files are not meant to be edited. Put all overrides in `.env`.
 
+### 5. Install the LM Bridge Plugin in Lidarr
+
 ## Version
 
 Deploy version: `1.8.3.00`
