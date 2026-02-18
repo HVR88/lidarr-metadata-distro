@@ -50,8 +50,13 @@ def main() -> int:
     config_patch.register_config_routes()
 
     # Optional runtime patches (auto-enable if MITM hook configured)
-    apply_patches = os.environ.get("LMBRIDGE_APPLY_PATCHES", "").lower() in {"1", "true", "yes"}
-    if not apply_patches and (
+    apply_env = os.environ.get("LMBRIDGE_APPLY_PATCHES")
+    if apply_env is None:
+        apply_patches = True
+    else:
+        apply_patches = apply_env.lower() in {"1", "true", "yes"}
+
+    if apply_patches and (
         os.environ.get("LMBRIDGE_MITM_MODULE")
         or os.environ.get("LMBRIDGE_MITM_PATH")
         or os.environ.get("LMBRIDGE_DB_HOOK_MODULE")
