@@ -28,6 +28,15 @@ _PLUGIN_VERSION_FILE = Path(
     )
 )
 _LAST_PLUGIN_VERSION: Optional[str] = None
+_MBMS_VERSION_FILE = Path("/mbms/VERSION")
+
+
+def _read_mbms_plus_version() -> str:
+    try:
+        value = _MBMS_VERSION_FILE.read_text().strip()
+    except OSError:
+        value = ""
+    return value or "not MBMS"
 
 
 def _cache_targets() -> Iterable[Tuple[str, object]]:
@@ -300,7 +309,7 @@ def register_root_route() -> None:
         info = {
             "version": fmt(_read_version()),
             "plugin_version": fmt(_read_last_plugin_version()),
-            "mbms_plus_version": fmt(os.getenv("MBMS_PLUS_VERSION")),
+            "mbms_plus_version": fmt(_read_mbms_plus_version()),
             "mbms_replication_schedule": fmt(_format_replication_schedule()),
             "mbms_index_schedule": fmt(_format_index_schedule()),
             "lidarr_version": fmt(_read_last_lidarr_version()),
