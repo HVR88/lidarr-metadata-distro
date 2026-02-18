@@ -2,11 +2,11 @@
   <img src="https://raw.githubusercontent.com/HVR88/LM-Bridge-DEV/main/assets/lmbridge-icon.png" alt="LM Bridge" width="500" />
 </p>
 
-# <p align="center">**LM Bridge - Metadata Handler for Lidarr\_**<br><sub>**_FAST • Local • Private_**</sub></p>
+# <p align="center">**LM Bridge - Metadata Handler**<br><sub>**_FAST • Local • Private_**</sub></p>
 
 ## Introduction
 
-This is a stand-alone _LM Bridge_ release for existing MusicBrainz mirror installations.
+This is a stand-alone _LM Bridge_ release for existing MusicBrainz mirror installations. It should be installed onto the same host or docker network as the MusicBrainz mirror. Lidarr setup is detailed below.
 
 **LM Bridge Features**
 
@@ -58,7 +58,7 @@ docker compose up -d
 
 ## Version
 
-Deploy version: `1.7.5.00`
+Deploy version: `1.7.6.00`
 
 Optional cache settings (in `.env`):
 
