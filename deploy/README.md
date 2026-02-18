@@ -76,11 +76,13 @@ If you don't see a _System → Plugins_ page in your Lidarr, switch to the `nigh
 4. Enter the URL of the LM Bridge container **http://<your_LM_BRIDGE_IP>:5001**
 5. Click Save
 
-Verify a successful LM Bridge installation and check versions by opening the LM Bridge URL in your browser: **http://<your_LM_BRIDGE_IP>:5001**
-
 Lidarr is now using the Bridge API and you should see lightning-fast queries to your MusicBrainz mirror.
 
-### Files:
+## Browser access / status
+
+Visit **http://HOST_IP:5001** to check the status of LM bridge, including version and filter settings
+
+## Files:
 
 - `docker-compose.yml` (default: init + external network)
 - `compose/lm-bridge-hosted-services.yml` (standalone single-container)
