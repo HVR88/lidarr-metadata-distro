@@ -354,12 +354,12 @@ def register_root_route() -> None:
 
         media_formats_url = "https://github.com/HVR88/LM-Bridge-DEV/blob/main/docs/Media-Formats.md"
         exclude_label = (
-            'Exclude <a class="config-link" href="{}">Media Formats</a>'.format(
+            'Exclude <a class="config-link" href="{}" target="_blank" rel="noopener">Media Formats</a>'.format(
                 html.escape(media_formats_url)
             )
         )
         include_label = (
-            'Include <a class="config-link" href="{}">Media Formats</a>'.format(
+            'Include <a class="config-link" href="{}" target="_blank" rel="noopener">Media Formats</a>'.format(
                 html.escape(media_formats_url)
             )
         )
