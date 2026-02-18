@@ -13,7 +13,13 @@ from lidarrmetadata.app import no_cache
 from lidarrmetadata.version_patch import _read_version
 
 _START_TIME = time.time()
-_LIDARR_VERSION_FILE = Path(os.environ.get("LMBRIDGE_LIDARR_VERSION_FILE", "/metadata/lidarr_version.txt"))
+_STATE_DIR = Path(os.environ.get("LMBRIDGE_INIT_STATE_DIR", "/metadata/init-state"))
+_LIDARR_VERSION_FILE = Path(
+    os.environ.get(
+        "LMBRIDGE_LIDARR_VERSION_FILE",
+        str(_STATE_DIR / "lidarr_version.txt"),
+    )
+)
 _LAST_LIDARR_VERSION: Optional[str] = None
 
 
@@ -162,6 +168,20 @@ def _read_last_lidarr_version() -> Optional[str]:
     return _LAST_LIDARR_VERSION
 
 
+def set_lidarr_version(value: Optional[str]) -> None:
+    value = (value or "").strip()
+    version = value or None
+    global _LAST_LIDARR_VERSION
+    _LAST_LIDARR_VERSION = version
+    if not version:
+        return
+    try:
+        _LIDARR_VERSION_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _LIDARR_VERSION_FILE.write_text(version + "\n")
+    except OSError:
+        return
+
+
 def _capture_lidarr_version(user_agent: Optional[str]) -> None:
     if not user_agent:
         return
@@ -172,12 +192,7 @@ def _capture_lidarr_version(user_agent: Optional[str]) -> None:
     global _LAST_LIDARR_VERSION
     if _LAST_LIDARR_VERSION == version:
         return
-    _LAST_LIDARR_VERSION = version
-    try:
-        _LIDARR_VERSION_FILE.parent.mkdir(parents=True, exist_ok=True)
-        _LIDARR_VERSION_FILE.write_text(version + "\n")
-    except OSError:
-        return
+    set_lidarr_version(version)
 
 
 def register_root_route() -> None:
