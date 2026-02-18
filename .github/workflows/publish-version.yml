@@ -27,7 +27,40 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
+          submodules: false
+
+      - name: Diagnose submodule auth
+        run: |
+          set -euo pipefail
+          echo "Testing access to submodule repo..."
+          token="${{ github.token }}"
+          basic="$(printf 'x-access-token:%s' "$token" | base64)"
+          echo "::add-mask::$basic"
+
+          set +e
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $basic" \
+            ls-remote https://github.com/HVR88/LidarrAPI.Metadata.git >/tmp/submodule-ls-remote.txt 2>/tmp/submodule-ls-remote.err
+          rc_ls=$?
+          set -e
+
+          echo "ls-remote exit code: $rc_ls"
+          head -n 5 /tmp/submodule-ls-remote.txt || true
+          if [ $rc_ls -ne 0 ]; then
+            echo "ls-remote stderr:"
+            cat /tmp/submodule-ls-remote.err
+          fi
+
+          echo "Attempting submodule update with explicit auth header..."
+          git submodule sync --recursive
+          set +e
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $basic" \
+            submodule update --init --force --recursive
+          rc_sub=$?
+          set -e
+          echo "submodule update exit code: $rc_sub"
+          if [ $rc_sub -ne 0 ]; then
+            exit 1
+          fi
 
       - name: Generate media format mappings
         run: |
