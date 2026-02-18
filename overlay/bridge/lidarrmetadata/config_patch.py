@@ -61,6 +61,7 @@ def register_config_routes() -> None:
                 "keep_only_media_count": release_filters.get_runtime_media_keep_only(),
                 "prefer": release_filters.get_runtime_media_prefer(),
                 "lidarr_version": _extract_lidarr_version(payload),
+                "plugin_version": _extract_plugin_version(payload),
             }
         )
         return jsonify(
@@ -92,6 +93,21 @@ def _extract_lidarr_version(payload: Dict[str, Any]) -> str:
     return str(value).strip() if value else ""
 
 
+def _extract_plugin_version(payload: Dict[str, Any]) -> str:
+    value = payload.get("plugin_version")
+    if value is None:
+        value = payload.get("pluginVersion")
+    if value is None:
+        value = payload.get("lmbridge_plugin_version")
+    if value is None:
+        value = payload.get("lmbridgePluginVersion")
+    if value is None:
+        value = payload.get("lmbridge_version")
+    if value is None:
+        value = payload.get("lmbridgeVersion")
+    return str(value).strip() if value else ""
+
+
 def _load_persisted_config() -> None:
     try:
         data = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
@@ -117,6 +133,9 @@ def _load_persisted_config() -> None:
     lidarr_version = (data.get("lidarr_version") or "").strip()
     if lidarr_version:
         root_patch.set_lidarr_version(lidarr_version)
+    plugin_version = (data.get("plugin_version") or "").strip()
+    if plugin_version:
+        root_patch.set_plugin_version(plugin_version)
 
 
 def _persist_config(data: Dict[str, Any]) -> None:
@@ -133,6 +152,10 @@ def _persist_config(data: Dict[str, Any]) -> None:
         if lidarr_version:
             payload["lidarr_version"] = lidarr_version
             root_patch.set_lidarr_version(lidarr_version)
+        plugin_version = (data.get("plugin_version") or "").strip()
+        if plugin_version:
+            payload["plugin_version"] = plugin_version
+            root_patch.set_plugin_version(plugin_version)
         _STATE_FILE.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     except Exception:
         return

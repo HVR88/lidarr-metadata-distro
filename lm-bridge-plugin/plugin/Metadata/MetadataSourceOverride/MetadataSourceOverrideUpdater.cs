@@ -302,6 +302,10 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             }
             var keepOnlyMediaCount = Math.Clamp(settings.KeepOnlyMediaCount.GetValueOrDefault(), 0, 999);
             var prefer = settings.Prefer == (int)MediaPreferOption.Analog ? "analog" : "digital";
+            var pluginVersion = typeof(MetadataSourceOverrideUpdater).Assembly
+                .GetName()
+                .Version?
+                .ToString();
             var payload = new ReleaseFilterPayload
             {
                 Enabled = definition.Enable,
@@ -309,7 +313,8 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
                 IncludeMediaFormats = definition.Enable ? includeTokens : Array.Empty<string>(),
                 KeepOnlyMediaCount = definition.Enable && keepOnlyMediaCount > 0 ? keepOnlyMediaCount : null,
                 Prefer = definition.Enable && keepOnlyMediaCount > 0 ? prefer : null,
-                LidarrVersion = BuildInfo.Version.ToString()
+                LidarrVersion = BuildInfo.Version.ToString(),
+                PluginVersion = pluginVersion
             };
 
             var json = payload.ToJson();
@@ -356,6 +361,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             public int? KeepOnlyMediaCount { get; set; }
             public string? Prefer { get; set; }
             public string? LidarrVersion { get; set; }
+            public string? PluginVersion { get; set; }
         }
 
         private string ResolveAutoEnableMarkerPath()

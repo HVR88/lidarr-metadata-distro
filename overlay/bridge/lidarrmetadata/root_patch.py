@@ -21,6 +21,13 @@ _LIDARR_VERSION_FILE = Path(
     )
 )
 _LAST_LIDARR_VERSION: Optional[str] = None
+_PLUGIN_VERSION_FILE = Path(
+    os.environ.get(
+        "LMBRIDGE_PLUGIN_VERSION_FILE",
+        str(_STATE_DIR / "lmbridge_plugin_version.txt"),
+    )
+)
+_LAST_PLUGIN_VERSION: Optional[str] = None
 
 
 def _cache_targets() -> Iterable[Tuple[str, object]]:
@@ -182,6 +189,32 @@ def set_lidarr_version(value: Optional[str]) -> None:
         return
 
 
+def _read_last_plugin_version() -> Optional[str]:
+    global _LAST_PLUGIN_VERSION
+    if _LAST_PLUGIN_VERSION is not None:
+        return _LAST_PLUGIN_VERSION
+    try:
+        value = _PLUGIN_VERSION_FILE.read_text().strip()
+    except OSError:
+        value = ""
+    _LAST_PLUGIN_VERSION = value or None
+    return _LAST_PLUGIN_VERSION
+
+
+def set_plugin_version(value: Optional[str]) -> None:
+    value = (value or "").strip()
+    version = value or None
+    global _LAST_PLUGIN_VERSION
+    _LAST_PLUGIN_VERSION = version
+    if not version:
+        return
+    try:
+        _PLUGIN_VERSION_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _PLUGIN_VERSION_FILE.write_text(version + "\n")
+    except OSError:
+        return
+
+
 def _capture_lidarr_version(user_agent: Optional[str]) -> None:
     if not user_agent:
         return
@@ -266,6 +299,7 @@ def register_root_route() -> None:
 
         info = {
             "version": fmt(_read_version()),
+            "plugin_version": fmt(_read_last_plugin_version()),
             "mbms_plus_version": fmt(os.getenv("MBMS_PLUS_VERSION")),
             "mbms_replication_schedule": fmt(_format_replication_schedule()),
             "mbms_index_schedule": fmt(_format_index_schedule()),
@@ -363,6 +397,7 @@ def register_root_route() -> None:
         replacements = {
             "__ICON_URL__": html.escape(icon_url),
             "__LM_VERSION__": safe["version"],
+            "__LM_PLUGIN_VERSION__": safe["plugin_version"],
             "__MBMS_PLUS_VERSION__": safe["mbms_plus_version"],
             "__LIDARR_VERSION__": safe["lidarr_version"],
             "__MBMS_REPLICATION_SCHEDULE__": safe["mbms_replication_schedule"],
