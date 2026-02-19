@@ -12,6 +12,17 @@
         --muted: #55666f;
         --accent: #0b7d6d;
         --accent-2: #e2b159;
+        --accent-green: #6dd000;
+        --accent-orange: #ff8a00;
+        --accent-purple: #8a4dff;
+        --accent-purple-soft: rgba(138, 77, 255, 0.16);
+        --accent-purple-border: rgba(138, 77, 255, 0.4);
+        --accent-gradient-soft: linear-gradient(
+          135deg,
+          rgba(109, 208, 0, 0.18),
+          rgba(255, 138, 0, 0.18)
+        );
+        --accent-border: rgba(109, 208, 0, 0.4);
         --card: rgba(255, 255, 255, 0.88);
         --border: rgba(31, 44, 51, 0.14);
         --shadow: 0 12px 30px rgba(26, 38, 45, 0.14);
@@ -116,12 +127,12 @@
         box-shadow: var(--soft-shadow);
       }
       .tabs {
-        margin: 20px auto 0;
+        margin: 20px 0 0;
         border: 1px solid var(--border);
         background: #fff;
         border-radius: 12px;
         padding: 12px 14px 16px;
-        width: clamp(280px, 70%, 760px);
+        width: 100%;
         box-shadow: var(--soft-shadow);
       }
       .tab-buttons {
@@ -146,9 +157,9 @@
         transition: all 120ms ease;
       }
       .tab-button.active {
-        color: #fff;
-        background: var(--accent);
-        border-color: var(--accent);
+        color: #2f5f16;
+        background: var(--accent-gradient-soft);
+        border-color: var(--accent-border);
       }
       .tab-panel {
         display: none;
@@ -175,9 +186,9 @@
         box-shadow: inset 0 1px 2px rgba(26, 38, 45, 0.08);
       }
       .refresh-button {
-        border: 1px solid var(--accent);
-        background: var(--accent);
-        color: #fff;
+        border: 1px solid var(--accent-border);
+        background: var(--accent-gradient-soft);
+        color: #2f5f16;
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -185,7 +196,7 @@
         padding: 10px 16px;
         border-radius: 999px;
         cursor: pointer;
-        box-shadow: 0 6px 12px rgba(11, 125, 109, 0.2);
+        box-shadow: 0 6px 12px rgba(11, 125, 109, 0.12);
         height: fit-content;
       }
       .config-row {
@@ -242,9 +253,9 @@
         font: inherit;
       }
       .link-danger {
-        border-color: rgba(176, 38, 45, 0.2);
-        color: #8a1f26;
-        background: rgba(255, 235, 236, 0.7);
+        border-color: var(--accent-purple-border);
+        color: var(--accent-purple);
+        background: var(--accent-purple-soft);
       }
       .link:hover {
         transform: translateY(-1px);
@@ -319,7 +330,7 @@
               >Version JSON</a
             >
             <a class="link" href="__MBMS_URL__" target="_blank" rel="noopener"
-              >MBMS PLUS Repo</a
+              >MBMS PLUS GitHub</a
             >
           </div>
           <div class="links-right">
@@ -357,7 +368,7 @@
             <div class="refresh-box">
               <textarea
                 class="refresh-input"
-                placeholder="Paste release IDs or notes here..."
+                placeholder="Paste release IDs, MBIDs or URLs here..."
               ></textarea>
               <button class="refresh-button" type="button">Refresh</button>
             </div>
@@ -436,6 +447,81 @@
           button.addEventListener("click", () =>
             setActiveTab(button.dataset.tab)
           );
+        });
+      }
+
+      const refreshInput = document.querySelector(".refresh-input");
+      const refreshButton = document.querySelector(".refresh-button");
+      const extractIds = (text) => {
+        const mbidRegex =
+          /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
+        const mbids = new Set(text.match(mbidRegex) || []);
+        const stripped = text.replace(mbidRegex, " ");
+        const ids = new Set();
+
+        const urlAlbumRegex = /\/album\/(\d+)(?:[/?#]|$)/gi;
+        for (const match of stripped.matchAll(urlAlbumRegex)) {
+          ids.add(match[1]);
+        }
+        const queryRegex = /[?&](?:albumId|albumIds|id)=([0-9,]+)/gi;
+        for (const match of stripped.matchAll(queryRegex)) {
+          match[1]
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean)
+            .forEach((value) => ids.add(value));
+        }
+        const tokenRegex = /(?:^|[^0-9])([0-9]{1,9})(?=[^0-9]|$)/g;
+        for (const match of stripped.matchAll(tokenRegex)) {
+          ids.add(match[1]);
+        }
+
+        return {
+          mbids: Array.from(mbids),
+          lidarrIds: Array.from(ids).map((value) => Number(value)),
+        };
+      };
+
+      if (refreshInput && refreshButton) {
+        refreshButton.addEventListener("click", async () => {
+          const text = refreshInput.value || "";
+          const { mbids, lidarrIds } = extractIds(text);
+          if (!mbids.length && !lidarrIds.length) {
+            alert("No Lidarr IDs or MBIDs found.");
+            return;
+          }
+          refreshButton.disabled = true;
+          try {
+            const response = await fetch("/config/refresh-releases", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mbids,
+                lidarr_ids: lidarrIds,
+              }),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || !payload.ok) {
+              alert(
+                payload.error
+                  ? `Error: ${payload.error}`
+                  : `Error (${response.status})`
+              );
+              return;
+            }
+            const queued = payload.queued_ids?.length || 0;
+            const missing = payload.missing_mbids?.length || 0;
+            const errors = payload.errors?.length || 0;
+            alert(
+              `Queued ${queued} refresh request(s).` +
+                (missing ? ` Missing MBIDs: ${missing}.` : "") +
+                (errors ? ` Errors: ${errors}.` : "")
+            );
+          } catch (error) {
+            alert(`Request failed: ${error}`);
+          } finally {
+            refreshButton.disabled = false;
+          }
         });
       }
     </script>

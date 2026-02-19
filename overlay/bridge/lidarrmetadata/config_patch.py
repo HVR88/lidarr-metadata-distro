@@ -1,7 +1,9 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List, Tuple
+
+import aiohttp
 
 from quart import jsonify, request
 
@@ -88,6 +90,72 @@ def register_config_routes() -> None:
                 "include_media_formats": release_filters.get_runtime_media_include() or [],
                 "keep_only_media_count": release_filters.get_runtime_media_keep_only(),
                 "prefer": release_filters.get_runtime_media_prefer(),
+            }
+        )
+
+    for rule in upstream_app.app.url_map.iter_rules():
+        if rule.rule == "/config/refresh-releases":
+            return
+
+    @upstream_app.app.route("/config/refresh-releases", methods=["POST"])
+    async def _lmbridge_refresh_releases():
+        payload = await request.get_json(silent=True) or {}
+        lidarr_ids = _parse_int_list(payload.get("lidarr_ids") or payload.get("lidarrIds"))
+        mbids = _parse_mbid_list(payload.get("mbids") or payload.get("mbid") or payload.get("foreignAlbumIds"))
+
+        base_url = root_patch.get_lidarr_base_url()
+        api_key = root_patch.get_lidarr_api_key()
+        if not base_url or not api_key:
+            return jsonify({"ok": False, "error": "Missing Lidarr base URL or API key."}), 400
+
+        resolved_ids: List[int] = []
+        missing_mbids: List[str] = []
+        errors: List[str] = []
+        timeout = aiohttp.ClientTimeout(total=5)
+        headers = {"X-Api-Key": api_key}
+
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            for mbid in mbids:
+                url = base_url.rstrip("/") + "/api/v1/album"
+                try:
+                    async with session.get(url, headers=headers, params={"foreignAlbumId": mbid}) as resp:
+                        if resp.status != 200:
+                            errors.append(f"MBID {mbid}: status {resp.status}")
+                            continue
+                        data = await resp.json()
+                except Exception as exc:
+                    errors.append(f"MBID {mbid}: {exc}")
+                    continue
+                if not data:
+                    missing_mbids.append(mbid)
+                    continue
+                for item in data:
+                    album_id = item.get("id")
+                    if isinstance(album_id, int):
+                        resolved_ids.append(album_id)
+
+            all_ids = sorted(set(lidarr_ids + resolved_ids))
+            queued: List[int] = []
+            for album_id in all_ids:
+                try:
+                    cmd_url = base_url.rstrip("/") + "/api/v1/command"
+                    payload = {"name": "RefreshAlbum", "albumId": album_id}
+                    async with session.post(cmd_url, headers=headers, json=payload) as resp:
+                        if resp.status not in {200, 201}:
+                            errors.append(f"Album {album_id}: status {resp.status}")
+                            continue
+                    queued.append(album_id)
+                except Exception as exc:
+                    errors.append(f"Album {album_id}: {exc}")
+
+        return jsonify(
+            {
+                "ok": True,
+                "requested_ids": lidarr_ids,
+                "resolved_ids": resolved_ids,
+                "queued_ids": queued,
+                "missing_mbids": missing_mbids,
+                "errors": errors,
             }
         )
 
@@ -195,6 +263,35 @@ def _is_localhost_url(value: str) -> bool:
     text = (value or "").strip().lower()
     return text.startswith("http://localhost") or text.startswith("https://localhost") or \
         text.startswith("http://127.0.0.1") or text.startswith("https://127.0.0.1")
+
+
+def _parse_int_list(values) -> List[int]:
+    if values is None:
+        return []
+    if isinstance(values, str):
+        values = [v for v in values.replace(",", " ").split(" ") if v]
+    if isinstance(values, (int, float)):
+        values = [values]
+    out: List[int] = []
+    for value in values:
+        try:
+            out.append(int(value))
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _parse_mbid_list(values) -> List[str]:
+    if values is None:
+        return []
+    if isinstance(values, str):
+        values = [v for v in values.replace(",", " ").split(" ") if v]
+    out: List[str] = []
+    for value in values:
+        text = str(value).strip()
+        if text:
+            out.append(text)
+    return out
 
 
 def _load_persisted_config() -> None:
