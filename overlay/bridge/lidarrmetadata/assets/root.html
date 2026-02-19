@@ -17,6 +17,9 @@
         --accent-danger: #e0582b;
         --accent-danger-soft: rgba(224, 88, 43, 0.16);
         --accent-danger-border: rgba(224, 88, 43, 0.4);
+        --accent-update: #b23b6f;
+        --accent-update-soft: rgba(178, 59, 111, 0.18);
+        --accent-update-border: rgba(178, 59, 111, 0.45);
         --accent-gradient-soft: linear-gradient(
           135deg,
           rgba(109, 208, 0, 0.18),
@@ -112,6 +115,12 @@
         top: 50%;
         transform: translateY(-50%);
         text-decoration: none;
+      }
+      .pill-button.update {
+        border-color: var(--accent-update-border);
+        background: var(--accent-update-soft);
+        color: var(--accent-update);
+        box-shadow: 0 6px 12px rgba(178, 59, 111, 0.16);
       }
       .label {
         font-size: 12px;
@@ -320,16 +329,15 @@
         </div>
 
         <div class="grid">
-          <div class="pill has-action">
+          <div class="__LM_PILL_CLASS__">
             <div class="label">LM Bridge Version</div>
             <div class="value">__LM_VERSION__</div>
-            <a class="pill-button" href="__VERSION_URL__" target="_blank" rel="noopener">
-              JSON
-            </a>
+__LM_VERSION_BUTTON__
           </div>
-          <div class="pill">
+          <div class="__PLUGIN_PILL_CLASS__">
             <div class="label">LM Bridge Plugin Version</div>
             <div class="value">__LM_PLUGIN_VERSION__</div>
+__PLUGIN_VERSION_BUTTON__
           </div>
           <div class="__LIDARR_PILL_CLASS__">
             <div class="label">__LIDARR_VERSION_LABEL__</div>
@@ -477,7 +485,7 @@ __LIDARR_OPEN__
               alert(`Error (${response.status}): ${text}`);
               return;
             }
-            alert(`Replication started: ${text}`);
+            alert("Replication started.");
           } catch (error) {
             alert(`Request failed: ${error}`);
           } finally {

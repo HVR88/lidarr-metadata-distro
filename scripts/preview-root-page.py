@@ -24,7 +24,7 @@ def build_preview_html() -> str:
 
     mbms_pills = "\n".join(
         [
-            '          <div class="pill">',
+            '          <div class="pill has-action">',
             '            <div class="label">MBMS PLUS VERSION</div>',
             '            <div class="value">1.2.3</div>',
             '            <a class="pill-button" href="https://github.com/HVR88/MBMS_PLUS" target="_blank" rel="noopener">Git</a>',
@@ -44,8 +44,20 @@ def build_preview_html() -> str:
         "__ICON_URL__": "assets/lmbridge-icon.png",
         "__LM_VERSION__": "1.9.7.10",
         "__LM_PLUGIN_VERSION__": "1.9.7.10",
+        "__LM_PILL_CLASS__": "pill has-action",
+        "__PLUGIN_PILL_CLASS__": "pill",
+        "__LM_VERSION_BUTTON__": (
+            '            <a class="pill-button update" href="https://github.com/HVR88/LM-Bridge" target="_blank" rel="noopener">1.9.7.80</a>'
+        ),
+        "__PLUGIN_VERSION_BUTTON__": (
+            '            <a class="pill-button update" href="http://localhost:8686/settings/plugins" target="_blank" rel="noopener">1.9.7.80</a>'
+        ),
         "__LIDARR_VERSION_LABEL__": "LIDARR VERSION",
         "__LIDARR_VERSION__": "3.1.2.4913",
+        "__LIDARR_PILL_CLASS__": "pill has-action",
+        "__LIDARR_OPEN__": (
+            '            <a class="pill-button" href="http://localhost:8686" target="_blank" rel="noopener">Open</a>'
+        ),
         "__MBMS_REPLICATION_SCHEDULE__": "hourly @ :15",
         "__MBMS_INDEX_SCHEDULE__": "daily @ 03:00",
         "__METADATA_VERSION__": "3.0.0",
@@ -54,6 +66,7 @@ def build_preview_html() -> str:
         "__VERSION_URL__": "/version",
         "__CACHE_CLEAR_URL__": "/cache/clear",
         "__CACHE_EXPIRE_URL__": "/cache/expire",
+        "__REPLICATION_START_URL__": "/replication/start",
         "__INVALIDATE_APIKEY__": "",
         "__MBMS_URL__": "https://github.com/HVR88/MBMS_PLUS",
         "__CONFIG_HTML__": config_html,

@@ -6,7 +6,7 @@ import re
 import time
 import asyncio
 from datetime import datetime, timezone
-from typing import Optional, Tuple, Iterable
+from typing import Optional, Tuple, Iterable, Dict
 
 import aiohttp
 import subprocess
@@ -35,6 +35,83 @@ _MBMS_VERSION_FILE = Path("/mbms/VERSION")
 _LIDARR_BASE_URL: Optional[str] = None
 _LIDARR_API_KEY: Optional[str] = None
 _LIDARR_CLIENT_IP: Optional[str] = None
+_GITHUB_RELEASE_CACHE: Dict[str, Tuple[float, Optional[str]]] = {}
+_GITHUB_RELEASE_CACHE_TTL = 300.0
+
+
+def _normalize_version_string(value: Optional[str]) -> str:
+    if not value:
+        return ""
+    text = str(value).strip()
+    match = re.match(r"[vV]?([0-9]+(?:\.[0-9]+)*)", text)
+    if not match:
+        return text
+    return match.group(1)
+
+
+def _parse_version(value: str) -> Optional[Tuple[int, ...]]:
+    normalized = _normalize_version_string(value)
+    if not normalized:
+        return None
+    parts = normalized.split(".")
+    if not parts or any(not part.isdigit() for part in parts):
+        return None
+    return tuple(int(part) for part in parts)
+
+
+def _is_newer_version(current: str, latest: str) -> bool:
+    current_tuple = _parse_version(current)
+    latest_tuple = _parse_version(latest)
+    if not current_tuple or not latest_tuple:
+        return False
+    max_len = max(len(current_tuple), len(latest_tuple))
+    current_tuple += (0,) * (max_len - len(current_tuple))
+    latest_tuple += (0,) * (max_len - len(latest_tuple))
+    return latest_tuple > current_tuple
+
+
+async def _fetch_latest_release_version(owner: str, repo: str) -> Optional[str]:
+    key = f"{owner}/{repo}"
+    now = time.time()
+    cached = _GITHUB_RELEASE_CACHE.get(key)
+    if cached and (now - cached[0]) < _GITHUB_RELEASE_CACHE_TTL:
+        return cached[1]
+
+    version: Optional[str] = None
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "lm-bridge",
+    }
+    timeout = aiohttp.ClientTimeout(total=3)
+    try:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
+            try:
+                async with session.get(url, headers=headers) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        tag = data.get("tag_name") or data.get("name")
+                        version = _normalize_version_string(tag) or None
+                    elif resp.status not in (404, 422):
+                        version = None
+            except Exception:
+                version = None
+
+            if not version:
+                url = f"https://api.github.com/repos/{owner}/{repo}/tags?per_page=1"
+                try:
+                    async with session.get(url, headers=headers) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            if data:
+                                tag = data[0].get("name")
+                                version = _normalize_version_string(tag) or None
+                except Exception:
+                    version = None
+    finally:
+        _GITHUB_RELEASE_CACHE[key] = (now, version)
+
+    return version
 
 
 def _read_mbms_plus_version() -> str:
@@ -470,6 +547,7 @@ def register_root_route() -> None:
             if base_path
             else "/assets/lmbridge-icon.png"
         )
+        lm_repo_url = "https://github.com/HVR88/LM-Bridge"
         mbms_url = "https://github.com/HVR88/MBMS_PLUS"
         def fmt_config_value(value: object, *, empty_label: str = "none") -> str:
             if value is None:
@@ -556,20 +634,76 @@ def register_root_route() -> None:
                 '            <a class="pill-button" href="{}" target="_blank" rel="noopener">Open</a>'
             ).format(html.escape(lidarr_ui_url))
             replacements["__LIDARR_PILL_CLASS__"] = "pill has-action"
+        lidarr_plugins_url = (
+            f"{lidarr_ui_url.rstrip('/')}/settings/plugins" if lidarr_ui_url else ""
+        )
+
+        lm_latest, mbms_latest = await asyncio.gather(
+            _fetch_latest_release_version("HVR88", "LM-Bridge"),
+            _fetch_latest_release_version("HVR88", "MBMS_PLUS"),
+        )
+
+        lm_update = (
+            lm_latest
+            if lm_latest and _is_newer_version(info["version"], lm_latest)
+            else None
+        )
+        plugin_update = (
+            lm_latest
+            if lm_latest and _is_newer_version(info["plugin_version"], lm_latest)
+            else None
+        )
+        mbms_update = (
+            mbms_latest
+            if mbms_latest and _is_newer_version(info["mbms_plus_version"], mbms_latest)
+            else None
+        )
+
+        if lm_update:
+            replacements["__LM_PILL_CLASS__"] = "pill has-action"
+            replacements["__LM_VERSION_BUTTON__"] = (
+                '            <a class="pill-button update" href="{}" target="_blank" rel="noopener">{}</a>'
+            ).format(html.escape(lm_repo_url), html.escape(lm_update))
+        else:
+            replacements["__LM_PILL_CLASS__"] = "pill has-action"
+            replacements["__LM_VERSION_BUTTON__"] = (
+                '            <a class="pill-button" href="{}" target="_blank" rel="noopener">JSON</a>'
+            ).format(html.escape(version_url))
+
+        lidarr_plugins_url = "https://wiki.servarr.com/lidarr/plugins"
+        if plugin_update:
+            replacements["__PLUGIN_PILL_CLASS__"] = "pill"
+            plugin_target = lidarr_plugins_url or lm_repo_url
+            replacements["__PLUGIN_VERSION_BUTTON__"] = (
+                '            <a class="pill-button update" href="{}" target="_blank" rel="noopener">{}</a>'
+            ).format(html.escape(plugin_target), html.escape(plugin_update))
+        else:
+            replacements["__PLUGIN_PILL_CLASS__"] = "pill"
+            replacements["__PLUGIN_VERSION_BUTTON__"] = ""
+
+        if mbms_update:
+            mbms_button = (
+                '            <a class="pill-button update" href="{}" target="_blank" rel="noopener">{}</a>'
+            ).format(html.escape(mbms_url), html.escape(mbms_update))
+        else:
+            mbms_button = (
+                '            <a class="pill-button" href="{}" target="_blank" rel="noopener">Git</a>'
+            ).format(html.escape(mbms_url))
+
         mbms_pills = "\n".join(
             [
                 '          <div class="pill has-action">',
                 '            <div class="label">MBMS PLUS VERSION</div>',
-                f'            <div class="value">{safe["mbms_plus_version"]}</div>',
-                f'            <a class="pill-button" href="{html.escape(mbms_url)}" target="_blank" rel="noopener">Git</a>',
+                f'            <div class="value">{safe[\"mbms_plus_version\"]}</div>',
+                mbms_button,
                 "          </div>",
                 '          <div class="pill">',
                 '            <div class="label">MBMS Index Schedule</div>',
-                f'            <div class="value">{safe["mbms_index_schedule"]}</div>',
+                f'            <div class="value">{safe[\"mbms_index_schedule\"]}</div>',
                 "          </div>",
                 '          <div class="pill">',
                 '            <div class="label">MBMS Replication Schedule</div>',
-                f'            <div class="value">{safe["mbms_replication_schedule"]}</div>',
+                f'            <div class="value">{safe[\"mbms_replication_schedule\"]}</div>',
                 "          </div>",
             ]
         )
