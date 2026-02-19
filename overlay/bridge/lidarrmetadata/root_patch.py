@@ -8,6 +8,7 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Optional, Tuple, Iterable
 
+import aiohttp
 import lidarrmetadata
 from lidarrmetadata import provider
 from lidarrmetadata.app import no_cache
@@ -30,6 +31,8 @@ _PLUGIN_VERSION_FILE = Path(
 )
 _LAST_PLUGIN_VERSION: Optional[str] = None
 _MBMS_VERSION_FILE = Path("/mbms/VERSION")
+_LIDARR_BASE_URL: Optional[str] = None
+_LIDARR_API_KEY: Optional[str] = None
 
 
 def _read_mbms_plus_version() -> str:
@@ -38,6 +41,24 @@ def _read_mbms_plus_version() -> str:
     except OSError:
         value = ""
     return value or "not MBMS"
+
+
+def set_lidarr_base_url(value: str) -> None:
+    global _LIDARR_BASE_URL
+    _LIDARR_BASE_URL = value.strip() if value else ""
+
+
+def get_lidarr_base_url() -> str:
+    return _LIDARR_BASE_URL or ""
+
+
+def set_lidarr_api_key(value: str) -> None:
+    global _LIDARR_API_KEY
+    _LIDARR_API_KEY = value.strip() if value else ""
+
+
+def get_lidarr_api_key() -> str:
+    return _LIDARR_API_KEY or ""
 
 
 def _cache_targets() -> Iterable[Tuple[str, object]]:
@@ -122,6 +143,27 @@ def _format_replication_date(value: object) -> str:
     date_part = dt_local.strftime("%Y-%m-%d")
     time_part = dt_local.strftime("%I:%M %p").lstrip("0")
     return f"{date_part} {time_part}"
+
+
+async def _fetch_lidarr_version(base_url: str, api_key: str) -> Optional[str]:
+    if not base_url or not api_key:
+        return None
+    url = base_url.rstrip("/") + "/api/v1/system/status"
+    headers = {"X-Api-Key": api_key}
+    try:
+        timeout = aiohttp.ClientTimeout(total=2)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(url, headers=headers) as resp:
+                if resp.status != 200:
+                    return None
+                data = await resp.json()
+    except Exception:
+        return None
+    for key in ("version", "appVersion", "packageVersion", "buildVersion"):
+        value = data.get(key)
+        if value:
+            return str(value).strip()
+    return None
 
 def _env_first(*names: str) -> Optional[str]:
     for name in names:
@@ -322,6 +364,17 @@ def register_root_route() -> None:
         except Exception:
             replication_date = None
 
+        lidarr_version_label = "Lidarr Version (Last Seen)"
+        lidarr_version = _read_last_lidarr_version()
+        lidarr_base_url = get_lidarr_base_url()
+        lidarr_api_key = get_lidarr_api_key()
+        if lidarr_base_url and lidarr_api_key:
+            fetched_version = await _fetch_lidarr_version(lidarr_base_url, lidarr_api_key)
+            if fetched_version:
+                lidarr_version_label = "Lidarr Version"
+                lidarr_version = fetched_version
+                set_lidarr_version(fetched_version)
+
         def fmt(value: object) -> str:
             if value is None:
                 return "unknown"
@@ -334,7 +387,8 @@ def register_root_route() -> None:
             "mbms_plus_version": fmt(_read_mbms_plus_version()),
             "mbms_replication_schedule": fmt(_format_replication_schedule()),
             "mbms_index_schedule": fmt(_format_index_schedule()),
-            "lidarr_version": fmt(_read_last_lidarr_version()),
+            "lidarr_version": fmt(lidarr_version),
+            "lidarr_version_label": lidarr_version_label,
             "metadata_version": fmt(lidarrmetadata.__version__),
             "branch": fmt(os.getenv("GIT_BRANCH")),
             "commit": fmt(os.getenv("COMMIT_HASH")),
@@ -431,6 +485,7 @@ def register_root_route() -> None:
             "__LM_PLUGIN_VERSION__": safe["plugin_version"],
             "__MBMS_PLUS_VERSION__": safe["mbms_plus_version"],
             "__LIDARR_VERSION__": safe["lidarr_version"],
+            "__LIDARR_VERSION_LABEL__": safe["lidarr_version_label"],
             "__MBMS_REPLICATION_SCHEDULE__": safe["mbms_replication_schedule"],
             "__MBMS_INDEX_SCHEDULE__": safe["mbms_index_schedule"],
             "__METADATA_VERSION__": safe["metadata_version"],

@@ -32,6 +32,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
 
         private readonly IMetadataRepository _metadataRepository;
         private readonly IConfigService _configService;
+        private readonly IConfigFileProvider _configFileProvider;
         private readonly IDiskProvider _diskProvider;
         private readonly IHttpClient _httpClient;
         private readonly IManageCommandQueue _commandQueueManager;
@@ -42,6 +43,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
 
         public MetadataSourceOverrideUpdater(IMetadataRepository metadataRepository,
                                              IConfigService configService,
+                                             IConfigFileProvider configFileProvider,
                                              IDiskProvider diskProvider,
                                              IHttpClient httpClient,
                                              IManageCommandQueue commandQueueManager,
@@ -50,6 +52,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
         {
             _metadataRepository = metadataRepository;
             _configService = configService;
+            _configFileProvider = configFileProvider;
             _diskProvider = diskProvider;
             _httpClient = httpClient;
             _commandQueueManager = commandQueueManager;
@@ -306,6 +309,8 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
                 .GetName()
                 .Version?
                 .ToString();
+            var lidarrBaseUrl = ResolveLidarrBaseUrl();
+            var lidarrApiKey = _configFileProvider.ApiKey;
             var payload = new ReleaseFilterPayload
             {
                 Enabled = definition.Enable,
@@ -314,7 +319,9 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
                 KeepOnlyMediaCount = definition.Enable && keepOnlyMediaCount > 0 ? keepOnlyMediaCount : null,
                 Prefer = definition.Enable && keepOnlyMediaCount > 0 ? prefer : null,
                 LidarrVersion = BuildInfo.Version.ToString(),
-                PluginVersion = pluginVersion
+                PluginVersion = pluginVersion,
+                LidarrBaseUrl = lidarrBaseUrl,
+                LidarrApiKey = lidarrApiKey
             };
 
             var json = payload.ToJson();
@@ -362,6 +369,33 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             public string? Prefer { get; set; }
             public string? LidarrVersion { get; set; }
             public string? PluginVersion { get; set; }
+            public string? LidarrBaseUrl { get; set; }
+            public string? LidarrApiKey { get; set; }
+        }
+
+        private string ResolveLidarrBaseUrl()
+        {
+            var configured = _configService.ApplicationUrl?.Trim();
+            if (!string.IsNullOrWhiteSpace(configured))
+            {
+                return configured;
+            }
+
+            var host = _configFileProvider.BindAddress?.Trim();
+            if (string.IsNullOrWhiteSpace(host) || host == "*" || host == "0.0.0.0" || host == "::")
+            {
+                host = "localhost";
+            }
+
+            var scheme = _configFileProvider.EnableSsl ? "https" : "http";
+            var port = _configFileProvider.EnableSsl ? _configFileProvider.SslPort : _configFileProvider.Port;
+            var urlBase = _configFileProvider.UrlBase?.Trim() ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(urlBase) && !urlBase.StartsWith("/"))
+            {
+                urlBase = "/" + urlBase;
+            }
+
+            return $"{scheme}://{host}:{port}{urlBase}";
         }
 
         private string ResolveAutoEnableMarkerPath()

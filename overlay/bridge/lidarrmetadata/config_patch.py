@@ -29,6 +29,8 @@ def register_config_routes() -> None:
     async def _lmbridge_release_filter_config():
         payload = await request.get_json(silent=True) or {}
         enabled = _is_truthy(payload.get("enabled", True))
+        lidarr_base_url, base_url_provided = _extract_lidarr_base_url(payload)
+        lidarr_api_key, api_key_provided = _extract_lidarr_api_key(payload)
         exclude = payload.get("exclude_media_formats")
         if exclude is None:
             exclude = payload.get("excludeMediaFormats")
@@ -62,6 +64,8 @@ def register_config_routes() -> None:
                 "prefer": release_filters.get_runtime_media_prefer(),
                 "lidarr_version": _extract_lidarr_version(payload),
                 "plugin_version": _extract_plugin_version(payload),
+                "lidarr_base_url": lidarr_base_url if base_url_provided else None,
+                "lidarr_api_key": lidarr_api_key if api_key_provided else None,
             }
         )
         return jsonify(
@@ -108,6 +112,36 @@ def _extract_plugin_version(payload: Dict[str, Any]) -> str:
     return str(value).strip() if value else ""
 
 
+def _extract_lidarr_base_url(payload: Dict[str, Any]) -> tuple[str, bool]:
+    for key in (
+        "lidarr_base_url",
+        "lidarrBaseUrl",
+        "lidarr_url",
+        "lidarrUrl",
+        "base_url",
+        "baseUrl",
+    ):
+        if key in payload:
+            value = payload.get(key)
+            return (str(value).strip() if value is not None else "", True)
+    return "", False
+
+
+def _extract_lidarr_api_key(payload: Dict[str, Any]) -> tuple[str, bool]:
+    for key in (
+        "lidarr_api_key",
+        "lidarrApiKey",
+        "api_key",
+        "apiKey",
+        "lidarr_key",
+        "lidarrKey",
+    ):
+        if key in payload:
+            value = payload.get(key)
+            return (str(value).strip() if value is not None else "", True)
+    return "", False
+
+
 def _load_persisted_config() -> None:
     try:
         data = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
@@ -136,6 +170,12 @@ def _load_persisted_config() -> None:
     plugin_version = (data.get("plugin_version") or "").strip()
     if plugin_version:
         root_patch.set_plugin_version(plugin_version)
+    lidarr_base_url = data.get("lidarr_base_url")
+    if lidarr_base_url is not None:
+        root_patch.set_lidarr_base_url(str(lidarr_base_url))
+    lidarr_api_key = data.get("lidarr_api_key")
+    if lidarr_api_key is not None:
+        root_patch.set_lidarr_api_key(str(lidarr_api_key))
 
 
 def _persist_config(data: Dict[str, Any]) -> None:
@@ -156,6 +196,12 @@ def _persist_config(data: Dict[str, Any]) -> None:
         if plugin_version:
             payload["plugin_version"] = plugin_version
             root_patch.set_plugin_version(plugin_version)
+        if data.get("lidarr_base_url") is not None:
+            payload["lidarr_base_url"] = str(data.get("lidarr_base_url") or "").strip()
+            root_patch.set_lidarr_base_url(payload["lidarr_base_url"])
+        if data.get("lidarr_api_key") is not None:
+            payload["lidarr_api_key"] = str(data.get("lidarr_api_key") or "").strip()
+            root_patch.set_lidarr_api_key(payload["lidarr_api_key"])
         _STATE_FILE.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     except Exception:
         return
