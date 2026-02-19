@@ -30,7 +30,7 @@
       "name": "digital_cd_quality",
       "formats": [
         "CD",
-        "Digital Audio",
+        "Digital Media",
         "Compact Disc",
         "SHM-CD",
         "HQCD",
@@ -51,12 +51,6 @@
         "CD+G",
         "8cm CD+G",
         "Data CD"
-      ]
-    },
-    {
-      "name": "digital_media",
-      "formats": [
-        "Digital Media"
       ]
     },
     {

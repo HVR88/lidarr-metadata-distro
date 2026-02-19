@@ -55,7 +55,7 @@ Notes:
 | Copy Control CD | 3,498 |
 | DAT | 651 |
 | Data CD | 1,930 |
-| Digital Audio | - |
+| Digital Media | 2,506,866 |
 | DTS CD | 146 |
 | DualDisc (CD side) | 283 |
 | DVDplus (CD side) | 14 |
@@ -65,12 +65,6 @@ Notes:
 | Minimax CD | 54 |
 | Mixed Mode CD | 911 |
 | SHM-CD | 4,512 |
-
-### Media (digital_media)
-
-| Format | Releases |
-| --- | ---: |
-| Digital Media | 2,506,866 |
 
 ### Video Optical (digital_video_optical)
 
