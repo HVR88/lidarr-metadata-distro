@@ -543,6 +543,15 @@ def register_root_route() -> None:
             "__MBMS_URL__": html.escape(mbms_url),
             "__CONFIG_HTML__": config_html,
         }
+        lidarr_ui_url = get_lidarr_base_url()
+        if not lidarr_ui_url:
+            replacements["__LIDARR_OPEN__"] = ""
+            replacements["__LIDARR_PILL_CLASS__"] = "pill"
+        else:
+            replacements["__LIDARR_OPEN__"] = (
+                '            <a class="pill-button" href="{}" target="_blank" rel="noopener">Open</a>'
+            ).format(html.escape(lidarr_ui_url))
+            replacements["__LIDARR_PILL_CLASS__"] = "pill has-action"
         mbms_pills = "\n".join(
             [
                 '          <div class="pill has-action">',
