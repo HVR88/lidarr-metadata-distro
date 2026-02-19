@@ -311,6 +311,9 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
                 .ToString();
             var lidarrBaseUrl = ResolveLidarrBaseUrl();
             var lidarrApiKey = _configFileProvider.ApiKey;
+            var lidarrPort = _configFileProvider.EnableSsl ? _configFileProvider.SslPort : _configFileProvider.Port;
+            var lidarrUseSsl = _configFileProvider.EnableSsl;
+            var lidarrUrlBase = _configFileProvider.UrlBase ?? string.Empty;
             var payload = new ReleaseFilterPayload
             {
                 Enabled = definition.Enable,
@@ -321,7 +324,10 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
                 LidarrVersion = BuildInfo.Version.ToString(),
                 PluginVersion = pluginVersion,
                 LidarrBaseUrl = lidarrBaseUrl,
-                LidarrApiKey = lidarrApiKey
+                LidarrApiKey = lidarrApiKey,
+                LidarrPort = lidarrPort,
+                LidarrUseSsl = lidarrUseSsl,
+                LidarrUrlBase = lidarrUrlBase
             };
 
             var json = payload.ToJson();
@@ -371,6 +377,9 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             public string? PluginVersion { get; set; }
             public string? LidarrBaseUrl { get; set; }
             public string? LidarrApiKey { get; set; }
+            public int? LidarrPort { get; set; }
+            public bool? LidarrUseSsl { get; set; }
+            public string? LidarrUrlBase { get; set; }
         }
 
         private string ResolveLidarrBaseUrl()

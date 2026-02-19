@@ -33,6 +33,7 @@ _LAST_PLUGIN_VERSION: Optional[str] = None
 _MBMS_VERSION_FILE = Path("/mbms/VERSION")
 _LIDARR_BASE_URL: Optional[str] = None
 _LIDARR_API_KEY: Optional[str] = None
+_LIDARR_CLIENT_IP: Optional[str] = None
 
 
 def _read_mbms_plus_version() -> str:
@@ -59,6 +60,15 @@ def set_lidarr_api_key(value: str) -> None:
 
 def get_lidarr_api_key() -> str:
     return _LIDARR_API_KEY or ""
+
+
+def set_lidarr_client_ip(value: str) -> None:
+    global _LIDARR_CLIENT_IP
+    _LIDARR_CLIENT_IP = value.strip() if value else ""
+
+
+def get_lidarr_client_ip() -> str:
+    return _LIDARR_CLIENT_IP or ""
 
 
 def _cache_targets() -> Iterable[Tuple[str, object]]:

@@ -30,7 +30,18 @@ def register_config_routes() -> None:
         payload = await request.get_json(silent=True) or {}
         enabled = _is_truthy(payload.get("enabled", True))
         lidarr_base_url, base_url_provided = _extract_lidarr_base_url(payload)
+        lidarr_url_base = _extract_lidarr_url_base(payload)
+        lidarr_port = _extract_lidarr_port(payload)
+        lidarr_use_ssl = _extract_lidarr_use_ssl(payload)
         lidarr_api_key, api_key_provided = _extract_lidarr_api_key(payload)
+        lidarr_client_ip = _extract_client_ip(request)
+        if lidarr_client_ip:
+            upstream_app.app.logger.info("LM-Bridge config sync from Lidarr at %s", lidarr_client_ip)
+        if lidarr_client_ip and (not base_url_provided or _is_localhost_url(lidarr_base_url)):
+            scheme = "https" if lidarr_use_ssl else "http"
+            port = lidarr_port or (6868 if lidarr_use_ssl else 8686)
+            lidarr_base_url = f"{scheme}://{lidarr_client_ip}:{port}{lidarr_url_base}"
+            base_url_provided = True
         exclude = payload.get("exclude_media_formats")
         if exclude is None:
             exclude = payload.get("excludeMediaFormats")
@@ -66,6 +77,7 @@ def register_config_routes() -> None:
                 "plugin_version": _extract_plugin_version(payload),
                 "lidarr_base_url": lidarr_base_url if base_url_provided else None,
                 "lidarr_api_key": lidarr_api_key if api_key_provided else None,
+                "lidarr_client_ip": lidarr_client_ip,
             }
         )
         return jsonify(
@@ -142,6 +154,49 @@ def _extract_lidarr_api_key(payload: Dict[str, Any]) -> tuple[str, bool]:
     return "", False
 
 
+def _extract_lidarr_port(payload: Dict[str, Any]) -> Optional[int]:
+    for key in ("lidarr_port", "lidarrPort", "port"):
+        if key in payload:
+            value = payload.get(key)
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return None
+    return None
+
+
+def _extract_lidarr_use_ssl(payload: Dict[str, Any]) -> bool:
+    for key in ("lidarr_ssl", "lidarrSsl", "use_ssl", "useSsl", "ssl"):
+        if key in payload:
+            return _is_truthy(payload.get(key))
+    return False
+
+
+def _extract_lidarr_url_base(payload: Dict[str, Any]) -> str:
+    for key in ("lidarr_url_base", "lidarrUrlBase", "url_base", "urlBase"):
+        if key in payload:
+            value = payload.get(key)
+            text = str(value).strip() if value is not None else ""
+            if text and not text.startswith("/"):
+                text = "/" + text
+            return text
+    return ""
+
+
+def _extract_client_ip(req) -> str:
+    for header in ("X-Forwarded-For", "X-Real-IP"):
+        value = req.headers.get(header)
+        if value:
+            return value.split(",")[0].strip()
+    return req.remote_addr or ""
+
+
+def _is_localhost_url(value: str) -> bool:
+    text = (value or "").strip().lower()
+    return text.startswith("http://localhost") or text.startswith("https://localhost") or \
+        text.startswith("http://127.0.0.1") or text.startswith("https://127.0.0.1")
+
+
 def _load_persisted_config() -> None:
     try:
         data = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
@@ -176,6 +231,9 @@ def _load_persisted_config() -> None:
     lidarr_api_key = data.get("lidarr_api_key")
     if lidarr_api_key is not None:
         root_patch.set_lidarr_api_key(str(lidarr_api_key))
+    lidarr_client_ip = data.get("lidarr_client_ip")
+    if lidarr_client_ip is not None:
+        root_patch.set_lidarr_client_ip(str(lidarr_client_ip))
 
 
 def _persist_config(data: Dict[str, Any]) -> None:
@@ -202,6 +260,9 @@ def _persist_config(data: Dict[str, Any]) -> None:
         if data.get("lidarr_api_key") is not None:
             payload["lidarr_api_key"] = str(data.get("lidarr_api_key") or "").strip()
             root_patch.set_lidarr_api_key(payload["lidarr_api_key"])
+        if data.get("lidarr_client_ip") is not None:
+            payload["lidarr_client_ip"] = str(data.get("lidarr_client_ip") or "").strip()
+            root_patch.set_lidarr_client_ip(payload["lidarr_client_ip"])
         _STATE_FILE.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     except Exception:
         return
