@@ -119,16 +119,33 @@
         top: 50%;
         transform: translateY(-50%);
         text-decoration: none;
+        z-index: 2;
+        box-shadow: none;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .pill-button:hover {
+        box-shadow: 0 6px 12px rgba(11, 125, 109, 0.2);
+      }
+      .pill-button:not(.overlay):hover {
+        transform: translateY(calc(-50% - 2px));
       }
       .pill-button.update {
         border-color: var(--accent-update-border);
         background: var(--accent-update-soft);
         color: var(--accent-update);
-        box-shadow: 0 6px 12px rgba(210, 74, 30, 0.18);
+      }
+      .pill-button.update:hover {
+        box-shadow: 0 6px 12px rgba(210, 74, 30, 0.22);
       }
       .pill-button.overlay {
         top: 10px;
         transform: none;
+        z-index: 3;
+      }
+      .pill-button.overlay:hover {
+        transform: translateY(-2px);
       }
       .label {
         font-size: 12px;
