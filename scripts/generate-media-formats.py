@@ -10,6 +10,21 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_PATH = ROOT / "data" / "media_formats_meta.json"
 PY_OUT = ROOT / "overlay" / "bridge" / "lidarrmetadata" / "media_formats_meta.py"
 CS_OUT = ROOT / "lm-bridge-plugin" / "plugin" / "Metadata" / "MetadataSourceOverride" / "MediaFormats.generated.cs"
+DOCS_OUT = ROOT / "docs" / "Media-Formats.md"
+
+_SMALL_TITLE_WORDS = {
+    "a",
+    "an",
+    "and",
+    "for",
+    "in",
+    "of",
+    "on",
+    "or",
+    "the",
+    "to",
+    "vs",
+}
 
 
 def _load_json_objects(text: str) -> List[dict]:
@@ -162,6 +177,51 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
     CS_OUT.write_text(content, encoding="utf-8")
 
 
+def _normalize_heading_title(title: str) -> str:
+    words = title.split(" ")
+    normalized: List[str] = []
+    idx = 0
+    while idx < len(words):
+        word = words[idx]
+        if not word.isalpha():
+            normalized.append(word)
+            idx += 1
+            continue
+        lower = word.lower()
+        next_word = words[idx + 1] if idx + 1 < len(words) else None
+        if lower == "hi" and next_word and next_word.isalpha() and next_word.lower() == "res":
+            normalized.append("Hi-Res")
+            idx += 2
+            continue
+        if lower == "cd":
+            normalized.append("CD")
+            idx += 1
+            continue
+        if idx > 0 and lower in _SMALL_TITLE_WORDS:
+            normalized.append(lower)
+        else:
+            normalized.append(word)
+        idx += 1
+    return " ".join(normalized)
+
+
+def _normalize_docs_headings() -> None:
+    if not DOCS_OUT.exists():
+        return
+    lines = DOCS_OUT.read_text(encoding="utf-8").splitlines()
+    changed = False
+    for idx, line in enumerate(lines):
+        if not line.startswith("### ") or " (" not in line or not line.rstrip().endswith(")"):
+            continue
+        title, rest = line[4:].split(" (", 1)
+        normalized = _normalize_heading_title(title)
+        if normalized != title:
+            lines[idx] = f"### {normalized} ({rest}"
+            changed = True
+    if changed:
+        DOCS_OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def main() -> None:
     if not SOURCE_PATH.exists():
         raise SystemExit(f"Missing source file: {SOURCE_PATH}")
@@ -169,6 +229,7 @@ def main() -> None:
     by_type = _validate(data)
     _emit_python(by_type)
     _emit_csharp(by_type)
+    _normalize_docs_headings()
     print(f"Wrote {PY_OUT}")
     print(f"Wrote {CS_OUT}")
 

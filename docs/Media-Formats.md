@@ -14,7 +14,7 @@ Notes:
 
 ## Digital
 
-### Hi Res (digital_hi_res)
+### Hi-Res (digital_hi_res)
 
 | Format | Releases |
 | --- | ---: |
@@ -89,7 +89,7 @@ Notes:
 | Minimax DVD-Video | 1 |
 | Minimax DVD | - |
 
-### Compressed Or Legacy (digital_compressed_or_legacy)
+### Compressed or Legacy (digital_compressed_or_legacy)
 
 | Format | Releases |
 | --- | ---: |
