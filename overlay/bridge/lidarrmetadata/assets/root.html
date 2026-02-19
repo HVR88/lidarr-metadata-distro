@@ -13,8 +13,9 @@
         --accent: #0b7d6d;
         --accent-2: #e2b159;
         --card: rgba(255, 255, 255, 0.88);
-        --border: rgba(31, 44, 51, 0.08);
+        --border: rgba(31, 44, 51, 0.14);
         --shadow: 0 12px 30px rgba(26, 38, 45, 0.14);
+        --soft-shadow: 0 6px 16px rgba(26, 38, 45, 0.12);
       }
       * {
         box-sizing: border-box;
@@ -73,6 +74,7 @@
         border-radius: 14px;
         padding: 12px 14px;
         background: #ffffff;
+        box-shadow: var(--soft-shadow);
       }
       .label {
         font-size: 12px;
@@ -111,6 +113,80 @@
         display: grid;
         gap: 6px;
         width: clamp(280px, 60%, 720px);
+        box-shadow: var(--soft-shadow);
+      }
+      .tabs {
+        margin: 20px auto 0;
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 12px;
+        padding: 12px 14px 16px;
+        width: clamp(280px, 70%, 760px);
+        box-shadow: var(--soft-shadow);
+      }
+      .tab-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+      .tab-button {
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--muted);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-size: 12px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 120ms ease;
+      }
+      .tab-button.active {
+        color: #fff;
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+      .refresh-box {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: start;
+      }
+      .refresh-input {
+        width: 100%;
+        min-height: 180px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 14px;
+        font-family: "IBM Plex Sans", "Source Sans 3", sans-serif;
+        color: var(--ink);
+        resize: vertical;
+        box-shadow: inset 0 1px 2px rgba(26, 38, 45, 0.08);
+      }
+      .refresh-button {
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-size: 12px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+        box-shadow: 0 6px 12px rgba(11, 125, 109, 0.2);
+        height: fit-content;
       }
       .config-row {
         display: flex;
@@ -265,7 +341,28 @@
             </button>
           </div>
         </div>
-        <div class="config">__CONFIG_HTML__</div>
+        <div class="tabs" data-tabs>
+          <div class="tab-buttons">
+            <button class="tab-button active" data-tab="filter-details">
+              Filter Details
+            </button>
+            <button class="tab-button" data-tab="refresh-releases">
+              Refresh Releases
+            </button>
+          </div>
+          <div class="tab-panel active" data-tab-panel="filter-details">
+            <div class="config">__CONFIG_HTML__</div>
+          </div>
+          <div class="tab-panel" data-tab-panel="refresh-releases">
+            <div class="refresh-box">
+              <textarea
+                class="refresh-input"
+                placeholder="Paste release IDs or notes here..."
+              ></textarea>
+              <button class="refresh-button" type="button">Refresh</button>
+            </div>
+          </div>
+        </div>
         <div class="foot">
           Tip: Use
           <a class="accent" href="album/9d148b20-c055-4f0d-9020-ae5c9ae08466"
@@ -322,6 +419,25 @@
       cacheButtons.forEach((button) => {
         button.addEventListener("click", () => runCacheAction(button));
       });
+
+      const tabRoot = document.querySelector("[data-tabs]");
+      if (tabRoot) {
+        const tabButtons = tabRoot.querySelectorAll("[data-tab]");
+        const tabPanels = tabRoot.querySelectorAll("[data-tab-panel]");
+        const setActiveTab = (name) => {
+          tabButtons.forEach((button) => {
+            button.classList.toggle("active", button.dataset.tab === name);
+          });
+          tabPanels.forEach((panel) => {
+            panel.classList.toggle("active", panel.dataset.tabPanel === name);
+          });
+        };
+        tabButtons.forEach((button) => {
+          button.addEventListener("click", () =>
+            setActiveTab(button.dataset.tab)
+          );
+        });
+      }
     </script>
   </body>
 </html>
