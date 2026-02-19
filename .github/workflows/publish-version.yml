@@ -52,7 +52,7 @@ jobs:
           version_input = os.environ.get("INPUT_VERSION", "").strip()
 
           def _clean(raw: str) -> str:
-              raw = raw.replace("\\n", "").strip()
+              raw = "".join(raw.split())
               if raw.startswith("v"):
                   raw = raw[1:]
               return raw
@@ -74,13 +74,9 @@ jobs:
 
           if version_input:
               version_input = _clean(version_input)
-              if re.fullmatch(r"\\d+\\.\\d+\\.\\d+", version_input):
-                  new_version = version_input
-              else:
-                  m = re.fullmatch(r"\\d+\\.\\d+\\.\\d+\\.\\d+", version_input)
-                  if not m:
-                      raise SystemExit(f"Invalid version override (use x.y.z or x.y.z.bb): {version_input!r}")
-                  new_version = version_input
+              if not re.fullmatch(r"\\d+(?:\\.\\d+){2,3}", version_input):
+                  raise SystemExit(f"Invalid version override (use x.y.z or x.y.z.bb): {version_input!r}")
+              new_version = version_input
           else:
               version = _clean(version_path.read_text())
               m3 = re.fullmatch(r"(\\d+)\\.(\\d+)\\.(\\d+)", version)
