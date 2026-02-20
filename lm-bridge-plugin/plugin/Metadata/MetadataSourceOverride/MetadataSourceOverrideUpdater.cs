@@ -190,7 +190,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             var url = baseUrl.TrimEnd('/') + "/config/release-filter";
             try
             {
-                var request = new HttpRequestBuilder(url).Get().Build();
+                var request = new HttpRequestBuilder(url).Build();
                 var response = _httpClient.Get<ReleaseFilterConfigResponse>(request);
                 var config = response.Resource;
                 if (config == null)
