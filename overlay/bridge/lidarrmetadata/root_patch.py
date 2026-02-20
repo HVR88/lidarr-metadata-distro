@@ -253,6 +253,52 @@ def _read_replication_status() -> Tuple[bool, str]:
     return True, started
 
 
+def _replication_remote_config() -> Tuple[bool, str, str, str]:
+    use_remote = False
+    base_url = os.getenv("LMBRIDGE_REPLICATION_BASE_URL") or ""
+    start_url = os.getenv("LMBRIDGE_REPLICATION_URL") or ""
+    status_url = os.getenv("LMBRIDGE_REPLICATION_STATUS_URL") or ""
+
+    if base_url or start_url or status_url:
+        use_remote = True
+    elif os.getenv("LMBRIDGE_REPLICATION_REMOTE", "").lower() in {"1", "true", "yes"}:
+        use_remote = True
+    elif os.getenv("MBMS_ADMIN_ENABLED", "").lower() in {"1", "true", "yes"}:
+        use_remote = True
+
+    if not base_url:
+        base_url = os.getenv("MBMS_ADMIN_BASE_URL", "") or "http://musicbrainz:8099"
+    if not start_url:
+        start_url = base_url.rstrip("/") + "/replication/start"
+    if not status_url:
+        status_url = base_url.rstrip("/") + "/replication/status"
+
+    header = os.getenv("LMBRIDGE_REPLICATION_HEADER", "") or "X-MBMS-Key"
+    key = (
+        os.getenv("LMBRIDGE_REPLICATION_KEY")
+        or os.getenv("MBMS_ADMIN_KEY")
+        or os.getenv("INVALIDATE_APIKEY")
+        or ""
+    )
+    return use_remote, start_url, status_url, (header + ":" + key if key else "")
+
+
+async def _fetch_replication_status_remote(status_url: str, header_pair: str) -> Optional[dict]:
+    headers = {}
+    if header_pair and ":" in header_pair:
+        name, value = header_pair.split(":", 1)
+        headers[name] = value
+    try:
+        timeout = aiohttp.ClientTimeout(total=2)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(status_url, headers=headers) as resp:
+                if resp.status != 200:
+                    return None
+                return await resp.json()
+    except Exception:
+        return None
+
+
 async def _fetch_lidarr_version(base_url: str, api_key: str) -> Optional[str]:
     if not base_url or not api_key:
         return None
@@ -472,6 +518,22 @@ def register_root_route() -> None:
                 "INVALIDATE_APIKEY"
             ):
                 return jsonify("Unauthorized"), 401
+            use_remote, start_url, _status_url, header_pair = _replication_remote_config()
+            if use_remote:
+                headers = {}
+                if header_pair and ":" in header_pair:
+                    name, value = header_pair.split(":", 1)
+                    headers[name] = value
+                try:
+                    timeout = aiohttp.ClientTimeout(total=4)
+                    async with aiohttp.ClientSession(timeout=timeout) as session:
+                        async with session.post(start_url, headers=headers) as resp:
+                            data = await resp.text()
+                            if resp.status >= 400:
+                                return jsonify({"ok": False, "error": data}), resp.status
+                            return jsonify({"ok": True, "remote": True})
+                except Exception as exc:
+                    return jsonify({"ok": False, "error": str(exc)}), 500
 
             script_path = os.getenv(
                 "LMBRIDGE_REPLICATION_SCRIPT", "/admin/replicate-now"
@@ -500,6 +562,11 @@ def register_root_route() -> None:
 
         @upstream_app.app.route("/replication/status", methods=["GET"])
         async def _lmbridge_replication_status():
+            use_remote, _start_url, status_url, header_pair = _replication_remote_config()
+            if use_remote:
+                data = await _fetch_replication_status_remote(status_url, header_pair)
+                if data is not None:
+                    return jsonify(data)
             running, started = _read_replication_status()
             payload = {"running": running}
             if started:
@@ -639,7 +706,16 @@ def register_root_route() -> None:
 
         template_path = assets_dir / "root.html"
         template = template_path.read_text(encoding="utf-8")
-        replication_running, replication_started = _read_replication_status()
+        use_remote, _start_url, status_url, header_pair = _replication_remote_config()
+        replication_running = False
+        replication_started = ""
+        if use_remote:
+            status_data = await _fetch_replication_status_remote(status_url, header_pair)
+            if status_data and isinstance(status_data, dict):
+                replication_running = bool(status_data.get("running"))
+                replication_started = str(status_data.get("started") or "")
+        if not use_remote:
+            replication_running, replication_started = _read_replication_status()
         replication_button_label = "Running" if replication_running else "Start"
         replication_button_class = (
             "pill-button danger wide" if replication_running else "pill-button"
