@@ -40,7 +40,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
         private readonly Logger _logger;
         private readonly string _autoEnableMarkerPath;
         private string? _lastReleaseFilterPayload;
-        private bool _releaseFilterLoadedFromBridge;
+        private bool _isSyncingFromUi;
 
         public MetadataSourceOverrideUpdater(IMetadataRepository metadataRepository,
                                              IConfigService configService,
@@ -60,6 +60,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             _albumService = albumService;
             _logger = logger;
             _autoEnableMarkerPath = ResolveAutoEnableMarkerPath();
+            MetadataSourceOverrideSettings.RegisterSettingsSync(SyncFromSettingsUi);
         }
 
         public void Handle(ApplicationStartedEvent message)
@@ -176,11 +177,6 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
 
         private void TryLoadReleaseFilterConfig(MetadataDefinition metadataDefinition, MetadataSourceOverrideSettings settings)
         {
-            if (_releaseFilterLoadedFromBridge)
-            {
-                return;
-            }
-
             var baseUrl = settings.MetadataSource?.Trim();
             if (string.IsNullOrWhiteSpace(baseUrl))
             {
@@ -199,7 +195,6 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
                 }
 
                 var changed = ApplyReleaseFilterSettings(settings, config);
-                _releaseFilterLoadedFromBridge = true;
 
                 if (changed)
                 {
@@ -210,6 +205,47 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             catch (Exception ex)
             {
                 _logger.Warn(ex, "Failed to load release filter config from LM-Bridge.");
+            }
+        }
+
+        private void SyncFromSettingsUi(MetadataSourceOverrideSettings settings)
+        {
+            if (_isSyncingFromUi)
+            {
+                return;
+            }
+
+            _isSyncingFromUi = true;
+            try
+            {
+                var definitions = _metadataRepository.All()
+                    .Where(d => d.Implementation == ImplementationName)
+                    .OfType<MetadataDefinition>()
+                    .ToList();
+                if (definitions.Count == 0)
+                {
+                    return;
+                }
+
+                var definition = definitions.FirstOrDefault(d => ReferenceEquals(d.Settings, settings))
+                    ?? definitions.FirstOrDefault(d =>
+                        d.Settings is MetadataSourceOverrideSettings candidate &&
+                        string.Equals(
+                            candidate.MetadataSource?.Trim(),
+                            settings.MetadataSource?.Trim(),
+                            StringComparison.OrdinalIgnoreCase))
+                    ?? (definitions.Count == 1 ? definitions[0] : null);
+
+                if (definition == null || definition.Settings is not MetadataSourceOverrideSettings defSettings)
+                {
+                    return;
+                }
+
+                TryLoadReleaseFilterConfig(definition, defSettings);
+            }
+            finally
+            {
+                _isSyncingFromUi = false;
             }
         }
 
@@ -381,11 +417,6 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             };
 
             var json = payload.ToJson();
-            if (!logEvenIfUnchanged && string.Equals(_lastReleaseFilterPayload, json, StringComparison.Ordinal))
-            {
-                return;
-            }
-
             try
             {
                 var requestBuilder = new HttpRequestBuilder(url).Post();
@@ -438,7 +469,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
                 keepOnlyMediaCount = 0;
             }
 
-            var prefer = ResolvePreferValue(config.Prefer, settings.Prefer);
+            var prefer = ResolvePreferValue(config.Prefer, config.PreferValue, settings.Prefer);
 
             var changed = false;
             if (!TokensEqual(settings.ExcludeMediaFormats, excludeTokens))
@@ -475,8 +506,19 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             return leftTokens.SequenceEqual(rightTokens, StringComparer.Ordinal);
         }
 
-        private static int ResolvePreferValue(string? prefer, int fallback)
+        private static int ResolvePreferValue(string? prefer, int? preferValue, int fallback)
         {
+            if (preferValue.HasValue)
+            {
+                return preferValue.Value switch
+                {
+                    (int)MediaPreferOption.Digital => (int)MediaPreferOption.Digital,
+                    (int)MediaPreferOption.Analog => (int)MediaPreferOption.Analog,
+                    (int)MediaPreferOption.Any => (int)MediaPreferOption.Any,
+                    _ => fallback
+                };
+            }
+
             if (string.IsNullOrWhiteSpace(prefer))
             {
                 return (int)MediaPreferOption.Any;
@@ -523,6 +565,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             public IEnumerable<string> IncludeMediaFormats { get; set; } = Array.Empty<string>();
             public int? KeepOnlyMediaCount { get; set; }
             public string? Prefer { get; set; }
+            public int? PreferValue { get; set; }
         }
 
         private string ResolveLidarrBaseUrl()

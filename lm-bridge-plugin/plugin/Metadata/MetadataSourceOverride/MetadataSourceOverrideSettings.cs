@@ -112,11 +112,30 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
     public class MetadataSourceOverrideSettings : IProviderConfig
     {
         private static readonly MetadataSourceOverrideSettingsValidator Validator = new();
+        private static readonly object SyncLock = new();
+        private static Action<MetadataSourceOverrideSettings>? SettingsSyncAction;
+        private static DateTime _lastSyncUtc = DateTime.MinValue;
+        private static readonly TimeSpan SyncCooldown = TimeSpan.FromSeconds(2);
 
         public const string DefaultMetadataSource = "http://127.0.0.1:5001";
 
+        private string _metadataSource = DefaultMetadataSource;
+
+        public static void RegisterSettingsSync(Action<MetadataSourceOverrideSettings> syncAction)
+        {
+            SettingsSyncAction = syncAction;
+        }
+
         [FieldDefinition(0, Label = "API URL", Type = FieldType.Url, Placeholder = DefaultMetadataSource, Section = MetadataSectionType.Metadata, HelpText = "HTTP://ADDRESS:PORT of your LM Bridge Instance")]
-        public string MetadataSource { get; set; } = DefaultMetadataSource;
+        public string MetadataSource
+        {
+            get
+            {
+                TrySyncSettings(this);
+                return _metadataSource;
+            }
+            set => _metadataSource = value;
+        }
 
         [FieldDefinition(1, Label = "Exclude Media Formats", HelpText = "List of release formats to remove - keep everything else. examples: vinyl, cassette, flexi, CD-R, etc. (Special aliases: analog / digital)", HelpTextWarning = "Mutually exclusive with Include Media Formats", HelpLink = "https://github.com/HVR88/Docs-Extras/blob/master/docs/Media-Formats.md", Type = FieldType.Tag, Section = MetadataSectionType.Metadata)]
         public IEnumerable<string> ExcludeMediaFormats { get; set; } = Array.Empty<string>();
@@ -136,6 +155,35 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
         public bool UseAtOwnRisk { get; set; } = true;
 
         public NzbDroneValidationResult Validate() => new(Validator.Validate(this));
+
+        private static void TrySyncSettings(MetadataSourceOverrideSettings settings)
+        {
+            var syncAction = SettingsSyncAction;
+            if (syncAction == null)
+            {
+                return;
+            }
+
+            var now = DateTime.UtcNow;
+            lock (SyncLock)
+            {
+                if (now - _lastSyncUtc < SyncCooldown)
+                {
+                    return;
+                }
+
+                _lastSyncUtc = now;
+            }
+
+            try
+            {
+                syncAction(settings);
+            }
+            catch
+            {
+                // Avoid surfacing sync errors while rendering settings UI.
+            }
+        }
     }
 
     public enum MediaPreferOption

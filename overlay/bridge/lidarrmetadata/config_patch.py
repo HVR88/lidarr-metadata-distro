@@ -30,18 +30,21 @@ def register_config_routes() -> None:
     @upstream_app.app.route("/config/release-filter", methods=["GET", "POST"])
     async def _lmbridge_release_filter_config():
         if request.method == "GET":
+            prefer_value = _prefer_to_value(release_filters.get_runtime_media_prefer())
             data = {
                 "enabled": bool(_read_enabled_flag()),
                 "exclude_media_formats": release_filters.get_runtime_media_exclude() or [],
                 "include_media_formats": release_filters.get_runtime_media_include() or [],
                 "keep_only_media_count": release_filters.get_runtime_media_keep_only(),
                 "prefer": release_filters.get_runtime_media_prefer(),
+                "prefer_value": prefer_value,
             }
             data.update(
                 {
                     "excludeMediaFormats": data["exclude_media_formats"],
                     "includeMediaFormats": data["include_media_formats"],
                     "keepOnlyMediaCount": data["keep_only_media_count"],
+                    "preferValue": data["prefer_value"],
                 }
             )
             return jsonify(data)
@@ -74,6 +77,11 @@ def register_config_routes() -> None:
         if keep_only_count is None:
             keep_only_count = payload.get("keepOnlyMediaCount")
         prefer = payload.get("prefer")
+        prefer_value = payload.get("prefer_value")
+        if prefer_value is None:
+            prefer_value = payload.get("preferValue")
+        if prefer_value is not None:
+            prefer = _prefer_value_to_token(prefer_value)
         if not enabled:
             exclude = []
             include = []
@@ -219,6 +227,44 @@ def _is_truthy(value) -> bool:
     if isinstance(value, str):
         return value.strip().lower() in {"1", "true", "yes", "on"}
     return bool(value)
+
+
+def _prefer_to_value(value: Optional[str]) -> int:
+    if not value:
+        return 2
+    token = value.strip().lower()
+    if token == "digital":
+        return 0
+    if token == "analog":
+        return 1
+    if token == "any":
+        return 2
+    return 2
+
+
+def _prefer_value_to_token(value: object) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        value = int(value)
+    if isinstance(value, (int, float)):
+        value = int(value)
+        if value == 0:
+            return "digital"
+        if value == 1:
+            return "analog"
+        if value == 2:
+            return None
+        return None
+    if isinstance(value, str):
+        token = value.strip().lower()
+        if token in {"0", "digital"}:
+            return "digital"
+        if token in {"1", "analog"}:
+            return "analog"
+        if token in {"2", "any"}:
+            return None
+    return None
 
 
 def _extract_lidarr_version(payload: Dict[str, Any]) -> str:

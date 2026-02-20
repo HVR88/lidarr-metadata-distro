@@ -4,796 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LM Bridge</title>
-    <style>
-      :root {
-        --bg1: #f6f1e9;
-        --bg2: #d6f5d6;
-        --bg3: #e2eaeb;
-        --ink: #1f2c33;
-        --muted: #55666f;
-        --accent: #0b7d6d;
-        --accent-2: #e2b159;
-        --accent-green: #6dd000;
-        --accent-orange: #ff8a00;
-        --accent-danger: #d3481e;
-        --accent-danger-base: #f8e2d6;
-        --accent-danger-soft: linear-gradient(
-          135deg,
-          rgba(255, 98, 12, 0.22),
-          rgba(210, 32, 26, 0.2),
-          rgba(154, 32, 118, 0.18)
-        );
-        --accent-danger-border: rgba(211, 72, 30, 0.5);
-        --accent-update: #d3481e;
-        --accent-update-base: #f8e2d6;
-        --accent-update-soft: linear-gradient(
-          135deg,
-          rgba(255, 98, 12, 0.22),
-          rgba(210, 32, 26, 0.2),
-          rgba(154, 32, 118, 0.18)
-        );
-        --accent-update-border: rgba(211, 72, 30, 0.5);
-        --accent-hot: #8e2f12;
-        --accent-hot-base: #fff2ea;
-        --accent-hot-soft: linear-gradient(
-          135deg,
-          rgba(255, 224, 120, 0.2),
-          rgba(255, 180, 60, 0.18),
-          rgba(255, 130, 40, 0.17),
-          rgba(228, 86, 48, 0.15),
-          rgba(178, 64, 140, 0.14)
-        );
-        --accent-hot-border: rgba(217, 74, 30, 0.26);
-        --accent-gradient-soft: linear-gradient(
-          135deg,
-          rgba(109, 208, 0, 0.18),
-          rgba(255, 138, 0, 0.18)
-        );
-        --accent-border: rgba(109, 208, 0, 0.4);
-        --card: rgba(255, 255, 255, 0.88);
-        --panel: #ffffff;
-        --border: rgba(31, 44, 51, 0.14);
-        --shadow: 0 12px 30px rgba(26, 38, 45, 0.14);
-        --soft-shadow: 0 6px 16px rgba(26, 38, 45, 0.12);
-        --action-button-size: 40px;
-        --panel-content-width: 720px;
-        --config-row-pad: 0.375rem;
-        --config-row-shift: 0.25rem;
-      }
-      body[data-theme="dark"] {
-        --bg1: #0f1316;
-        --bg2: #17262b;
-        --bg3: #0c1114;
-        --ink: #c6d4dd;
-        --muted: #97aab4;
-        --card: rgba(18, 23, 27, 0.92);
-        --panel: rgba(22, 28, 32, 0.92);
-        --border: rgba(231, 237, 240, 0.14);
-        --shadow: 0 16px 34px rgba(0, 0, 0, 0.45);
-        --soft-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-        --accent-gradient-soft: linear-gradient(
-          135deg,
-          rgba(220, 255, 220, 0.36),
-          rgba(180, 240, 190, 0.3),
-          rgba(255, 220, 160, 0.26)
-        );
-        --accent-border: rgba(190, 235, 190, 0.36);
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        color: var(--ink);
-        font-family:
-          "Space Grotesk", "IBM Plex Sans", "Source Sans 3", sans-serif;
-        background:
-          radial-gradient(1300px 760px at 10% 0%, var(--bg2), transparent 62%),
-          radial-gradient(1600px 980px at 100% 0%, rgba(255, 178, 96, 0.12), transparent 78%),
-          linear-gradient(180deg, var(--bg1), var(--bg3) 65%);
-        min-height: 100vh;
-      }
-      .wrap {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 48px 24px 64px;
-      }
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 28px 28px 24px;
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(6px);
-        position: relative;
-      }
-      .hero {
-        text-align: center;
-        margin-bottom: 12px;
-      }
-      .hero img {
-        max-width: 100%;
-        height: auto;
-      }
-      .hero-title {
-        margin: 12px 0 6px 0;
-        font-size: clamp(26px, 4vw, 40px);
-        letter-spacing: -0.02em;
-      }
-      .hero-sub {
-        display: block;
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--muted);
-        letter-spacing: 0.08em;
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 14px;
-      }
-      .pill {
-        position: relative;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 12px 14px;
-        background: var(--panel);
-        box-shadow: var(--soft-shadow);
-      }
-      .pill .label,
-      .pill .value {
-        position: relative;
-        z-index: 1;
-      }
-      .pill.has-action {
-        padding-right: 90px;
-      }
-      .pill.has-action.wide-action {
-        padding-right: 112px;
-      }
-      .pill-button {
-        border: 0;
-        background: none;
-        color: inherit;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        font-size: 12px;
-        width: 64px;
-        height: var(--action-button-size);
-        border-radius: 8px;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        position: absolute;
-        right: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        text-decoration: none;
-        z-index: 2;
-        box-shadow: none;
-        transition: none;
-        padding: 0;
-      }
-      .corner-button {
-        position: absolute;
-        top: 18px;
-        right: 18px;
-        width: var(--action-button-size);
-        height: var(--action-button-size);
-        border: 0;
-        background: none;
-        padding: 0;
-        cursor: pointer;
-        z-index: 3;
-      }
-      .corner-button__inner {
-        width: 100%;
-        height: 100%;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        background: var(--panel);
-        color: var(--muted);
-        font-weight: 700;
-        font-size: 13px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: var(--soft-shadow);
-        transition:
-          transform 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .corner-button:hover .corner-button__inner {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 18px rgba(17, 27, 32, 0.16);
-      }
-      .corner-button:active .corner-button__inner {
-        transform: translateY(2px) !important;
-        box-shadow: none !important;
-      }
-      body[data-theme="dark"] .corner-button__inner {
-        color: #c2cdd4;
-      }
-      body[data-theme="dark"] .pill-button__inner {
-        color: #c2cdd4;
-      }
-      body[data-theme="dark"] .refresh-button__inner {
-        color: #c2cdd4;
-      }
-      body[data-theme="dark"] .action-button__inner {
-        color: #c2cdd4;
-      }
-      body[data-theme="dark"] .config-action__inner {
-        color: #c2cdd4;
-      }
-      body[data-theme="dark"] .pill-button.update .pill-button__inner,
-      body[data-theme="dark"] .pill-button.danger .pill-button__inner {
-        color: #c2cdd4;
-        background-color: rgba(255, 242, 234, 0.32);
-        background-image: linear-gradient(
-          135deg,
-          rgba(255, 224, 110, 0.18),
-          rgba(255, 168, 40, 0.16),
-          rgba(255, 122, 30, 0.14),
-          rgba(255, 90, 40, 0.13),
-          rgba(180, 70, 170, 0.12)
-        );
-      }
-      body[data-theme="dark"] .pill-button__inner,
-      body[data-theme="dark"] .refresh-button__inner,
-      body[data-theme="dark"] .action-button__inner,
-      body[data-theme="dark"] .config-action__inner,
-      body[data-theme="dark"] .link,
-      body[data-theme="dark"] .corner-button__inner {
-        box-shadow: none !important;
-      }
-      .pill-button.wide {
-        width: 92px;
-      }
-      .pill-button__inner {
-        border: 1px solid var(--accent-border);
-        background: var(--accent-gradient-soft);
-        color: #2f5f16;
-        width: 100%;
-        height: 100%;
-        border-radius: 8px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: none;
-        transition:
-          transform 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .pill-button:hover .pill-button__inner {
-        box-shadow: 0 6px 12px rgba(11, 125, 109, 0.2);
-      }
-      .pill-button:not(.overlay):hover .pill-button__inner {
-        transform: translateY(-2px);
-      }
-      .pill-button:active .pill-button__inner {
-        transform: translateY(2px) !important;
-        box-shadow: none !important;
-      }
-      .pill-button.update {
-        color: var(--accent-hot);
-      }
-      .pill-button.update .pill-button__inner {
-        border-color: var(--accent-hot-border);
-        background-color: var(--accent-hot-base);
-        background-image: var(--accent-hot-soft);
-        color: var(--accent-hot);
-      }
-      .pill-button.update:hover .pill-button__inner {
-        box-shadow: 0 6px 12px rgba(217, 74, 30, 0.25);
-      }
-      .pill-button.danger {
-        color: var(--accent-hot);
-      }
-      .pill-button.danger .pill-button__inner {
-        border-color: var(--accent-hot-border);
-        background-color: var(--accent-hot-base);
-        background-image: var(--accent-hot-soft);
-        color: var(--accent-hot);
-      }
-      .pill-button.danger:hover .pill-button__inner {
-        box-shadow: 0 6px 12px rgba(217, 74, 30, 0.25);
-      }
-      .pill-button.overlay {
-        top: 10px;
-        transform: none;
-        z-index: 3;
-      }
-      .pill-button.overlay:hover .pill-button__inner {
-        transform: translateY(-2px);
-      }
-      .pill-button::before {
-        content: "";
-        position: absolute;
-        inset: -4px;
-      }
-      .label {
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--muted);
-        margin-bottom: 6px;
-      }
-      .value {
-        font-size: 16px;
-        font-weight: 600;
-      }
-      .replication-date {
-        white-space: nowrap;
-      }
-      .ampm {
-        font-size: 0.7em;
-        letter-spacing: 0.04em;
-      }
-      .links {
-        margin-top: 20px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 10px;
-      }
-      .links-left,
-      .links-right {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 10px;
-      }
-      .links-right {
-        margin-left: auto;
-      }
-      .config {
-        margin: 20px auto 0;
-        border: 1px solid var(--border);
-        background: var(--panel);
-        border-radius: 12px;
-        padding: 14px 16px;
-        display: grid;
-        gap: 6px;
-        width: var(--panel-content-width);
-        max-width: 100%;
-        box-shadow: var(--soft-shadow);
-      }
-      .tabs {
-        margin: 20px 0 0;
-        border: 1px solid var(--border);
-        background: var(--panel);
-        border-radius: 12px;
-        padding: 12px 14px 16px;
-        width: 100%;
-        box-shadow: var(--soft-shadow);
-      }
-      .tab-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0;
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 0;
-        margin-bottom: 12px;
-      }
-      .tab-button {
-        border: none;
-        background: none;
-        color: var(--muted);
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        font-size: 12px;
-        padding: 6px 14px 10px;
-        cursor: pointer;
-        transition: color 160ms ease;
-        border-bottom: 2px solid transparent;
-      }
-      .tab-button.active {
-        color: var(--ink);
-        border-bottom-color: var(--accent);
-      }
-      .tab-button:hover {
-        color: var(--ink);
-      }
-      .tab-panel {
-        display: none;
-      }
-      .tab-panel.active {
-        display: block;
-      }
-      .tab-panel[data-tab-panel="tools"] {
-        padding-top: 20px;
-      }
-      .filter-box {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 12px;
-        align-items: stretch;
-        margin: 20px auto 0;
-        width: var(--panel-content-width);
-        max-width: 100%;
-      }
-      .filter-box .config {
-        margin: 0;
-        width: 100%;
-      }
-      .filter-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        align-self: start;
-        height: 100%;
-        width: var(--action-button-width, 180px);
-      }
-      .filter-note {
-        margin-top: auto;
-        color: var(--muted);
-        font-size: 12px;
-        letter-spacing: 0.01em;
-        text-align: left;
-        width: 100%;
-        align-self: flex-end;
-      }
-      .refresh-box {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 12px;
-        align-items: start;
-        margin: 20px auto 0;
-        width: var(--panel-content-width);
-        max-width: 100%;
-      }
-      .refresh-input {
-        width: 100%;
-        min-height: 180px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: var(--panel);
-        padding: 12px;
-        font-size: 14px;
-        font-family: "IBM Plex Sans", "Source Sans 3", sans-serif;
-        color: var(--ink);
-        resize: vertical;
-        box-shadow: inset 0 1px 2px rgba(26, 38, 45, 0.08);
-      }
-      .refresh-input:focus-visible {
-        outline: none;
-        box-shadow: inset 0 1px 2px rgba(26, 38, 45, 0.08);
-      }
-      .refresh-button {
-        border: 0;
-        background: none;
-        color: inherit;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        font-size: 12px;
-        padding: 0;
-        cursor: pointer;
-        position: relative;
-        height: fit-content;
-        border-radius: 999px;
-      }
-      .refresh-button::before {
-        content: "";
-        position: absolute;
-        inset: -4px;
-      }
-      .action-button {
-        border: 0;
-        background: none;
-        color: inherit;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        font-size: 12px;
-        padding: 0;
-        cursor: pointer;
-        position: relative;
-        height: fit-content;
-        border-radius: 999px;
-      }
-      .action-button::before {
-        content: "";
-        position: absolute;
-        inset: -4px;
-      }
-      .refresh-button__inner {
-        border: 1px solid var(--accent-border);
-        background: var(--accent-gradient-soft);
-        color: #2f5f16;
-        padding: 10px 16px;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: var(--action-button-width, auto);
-        box-shadow: none;
-        transition:
-          transform 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .action-button__inner {
-        border: 1px solid var(--accent-border);
-        background: var(--accent-gradient-soft);
-        color: #2f5f16;
-        padding: 10px 16px;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: var(--action-button-width, auto);
-        box-shadow: none;
-        transition:
-          transform 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .refresh-button:hover .refresh-button__inner {
-        box-shadow: 0 6px 12px rgba(11, 125, 109, 0.2);
-        transform: translateY(-2px);
-      }
-      .action-button:hover .action-button__inner {
-        box-shadow: 0 6px 12px rgba(11, 125, 109, 0.2);
-        transform: translateY(-2px);
-      }
-      .refresh-button:active .refresh-button__inner {
-        transform: translateY(2px);
-        box-shadow: none;
-      }
-      .action-button:active .action-button__inner {
-        transform: translateY(2px);
-        box-shadow: none;
-      }
-      .config-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding-top: calc(var(--config-row-pad) + var(--config-row-shift));
-        padding-bottom: calc(var(--config-row-pad) - var(--config-row-shift));
-      }
-      .config-row + .config-row {
-        border-top: 1px dashed var(--border);
-      }
-      .config-value {
-        padding-top: 0;
-      }
-      .config-label {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--muted);
-        white-space: nowrap;
-      }
-      .config-link {
-        color: inherit;
-        text-decoration: underline;
-        text-underline-offset: 2px;
-        white-space: nowrap;
-      }
-      .config-link:hover {
-        color: var(--accent);
-      }
-      .config-value {
-        font-size: 13px;
-        font-weight: 600;
-        font-family: inherit;
-        text-align: right;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 8px;
-        white-space: nowrap;
-        word-break: break-word;
-      }
-      .config-value-text {
-        text-align: right;
-      }
-      .config-action {
-        border: 0;
-        background: none;
-        color: inherit;
-        padding: 0;
-        cursor: pointer;
-        position: relative;
-        width: 26px;
-        height: 26px;
-        flex: 0 0 auto;
-      }
-      .config-action::before {
-        content: "";
-        position: absolute;
-        inset: -4px;
-      }
-      .config-action__inner {
-        border: 1px solid var(--accent-border);
-        background: var(--accent-gradient-soft);
-        color: #2f5f16;
-        width: 100%;
-        height: 100%;
-        border-radius: 6px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0;
-        line-height: 0;
-        box-shadow: none;
-        transition:
-          transform 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .config-action__inner::before {
-        content: "";
-        width: 0;
-        height: 0;
-        border-left: 6px solid transparent;
-        border-right: 6px solid transparent;
-        border-top: 10px solid currentColor;
-      }
-      .config-menu {
-        position: absolute;
-        right: calc(100% + 8px);
-        bottom: 0;
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 6px;
-        min-width: 140px;
-        box-shadow: var(--soft-shadow);
-        display: none;
-        flex-direction: column;
-        gap: 4px;
-        z-index: 5;
-      }
-      .config-menu.open {
-        display: flex;
-      }
-      .config-menu button {
-        border: 0;
-        background: transparent;
-        color: var(--ink);
-        font-weight: 600;
-        font-size: 12px;
-        text-align: left;
-        padding: 6px 8px;
-        border-radius: 6px;
-        cursor: pointer;
-        white-space: nowrap;
-      }
-      .config-menu button:hover {
-        background: rgba(11, 125, 109, 0.12);
-      }
-      .config-menu button.selected {
-        background: rgba(11, 125, 109, 0.2);
-        color: var(--ink);
-      }
-      .config-menu button.config-menu-cancel {
-        margin-top: 4px;
-        border-top: 1px dashed var(--border);
-        padding-top: 8px;
-      }
-      .config-menu-check {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 8px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 12px;
-        color: var(--ink);
-        white-space: nowrap;
-      }
-      .config-menu-check input {
-        margin: 0;
-        width: 14px;
-        height: 14px;
-        accent-color: var(--accent);
-      }
-      .config-menu-check:hover {
-        background: rgba(11, 125, 109, 0.12);
-      }
-      .config-menu-check.selected {
-        background: rgba(11, 125, 109, 0.2);
-      }
-      .config-action:hover .config-action__inner {
-        box-shadow: 0 6px 12px rgba(11, 125, 109, 0.2);
-        transform: translateY(-2px);
-      }
-      .config-action:active .config-action__inner {
-        transform: translateY(2px);
-        box-shadow: none;
-      }
-      .link {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 14px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        background: #fff;
-        color: var(--ink);
-        text-decoration: none;
-        font-weight: 600;
-        transition:
-          transform 120ms ease,
-          box-shadow 120ms ease;
-        position: relative;
-      }
-      .link__inner {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        transition: none;
-      }
-      button.link {
-        appearance: none;
-        cursor: pointer;
-        font: inherit;
-      }
-      .link-danger {
-        border-color: var(--accent-danger-border);
-        color: var(--accent-danger);
-        background: var(--accent-danger-soft);
-      }
-      .link:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 18px rgba(17, 27, 32, 0.12);
-      }
-      .link:active {
-        transform: translateY(1px);
-        box-shadow: none;
-      }
-      body.suppress-hover .pill-button__inner,
-      body.suppress-hover .refresh-button__inner,
-      body.suppress-hover .action-button__inner,
-      body.suppress-hover .config-action__inner,
-      body.suppress-hover .corner-button__inner,
-      body.suppress-hover .link {
-        transform: translateY(0) !important;
-        box-shadow: none !important;
-      }
-      body.suppress-hover .pill-button:hover .pill-button__inner,
-      body.suppress-hover .pill-button.overlay:hover .pill-button__inner,
-      body.suppress-hover .refresh-button:hover .refresh-button__inner,
-      body.suppress-hover .action-button:hover .action-button__inner,
-      body.suppress-hover .config-action:hover .config-action__inner,
-      body.suppress-hover .corner-button:hover .corner-button__inner,
-      body.suppress-hover .link:hover {
-        transform: translateY(0) !important;
-        box-shadow: none !important;
-      }
-      .link::before {
-        content: "";
-        position: absolute;
-        inset: -4px;
-      }
-      .foot {
-        margin-top: 18px;
-        font-size: 13px;
-        color: var(--muted);
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 6px;
-      }
-      .credit {
-        margin-left: auto;
-        color: var(--muted);
-        text-decoration: none;
-        font-weight: 600;
-      }
-      .credit:hover {
-        color: var(--accent);
-      }
-      .accent {
-        color: var(--accent);
-      }
-    </style>
+    <link rel="stylesheet" href="root.css" />
+
   </head>
   <body>
     <main class="wrap">
@@ -856,21 +68,22 @@ __REPLICATION_BUTTON__
               Media Filters
             </button>
             <button class="tab-button" data-tab="refresh-releases">
-              Refresh Releases
+              Bulk Refresh
             </button>
+            <button class="tab-button" data-tab="artwork">Art Sources</button>
             <button class="tab-button" data-tab="tools">Tools</button>
           </div>
           <div class="tab-panel active" data-tab-panel="filter-details">
-            <div class="filter-box">
-              <div class="config">__CONFIG_HTML__</div>
-              <div class="filter-actions">
+            <div class="tab_inside-box">
+              <div class="filters_box">__CONFIG_HTML__</div>
+              <div class="actions_box">
                 <button class="action-button" type="button">
                   <span class="action-button__inner">Apply</span>
                 </button>
                 <button class="action-button" type="button">
                   <span class="action-button__inner">Reset</span>
                 </button>
-                <div class="filter-note">
+                <div class="tabs-footnote">
                   * Use the LM Bridge plugin in Lidarr to write free text, which
                   may be more useful to you
                 </div>
@@ -878,18 +91,31 @@ __REPLICATION_BUTTON__
             </div>
           </div>
           <div class="tab-panel" data-tab-panel="refresh-releases">
-            <div class="refresh-box">
+            <div class="tab_inside-box">
               <textarea
                 class="refresh-input"
-                placeholder="Paste release IDs, MBIDs or URLs here..."
+                placeholder="Paste artist or release IDs, MBIDs, Lidarr or MusicBrainz URLs here..."
               ></textarea>
-              <button class="refresh-button" type="button">
-                <span class="refresh-button__inner">Refresh</span>
+              <div class="actions_box">
+              <button class="action-button" type="button" data-refresh-button>
+                <span class="action-button__inner">Refresh</span>
               </button>
+                <div class="tabs-footnote">
+                  Paste what you want, no special formatting is needed
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-panel" data-tab-panel="artwork">
+            <div class="filters_box">
+              <div class="links">
+                <div class="links-left"></div>
+                <div class="links-right"></div>
+              </div>
             </div>
           </div>
           <div class="tab-panel" data-tab-panel="tools">
-            <div class="config">
+            <div class="filters_box">
               <div class="links">
                 <div class="links-left"></div>
                 <div class="links-right">
@@ -1220,7 +446,7 @@ __REPLICATION_BUTTON__
       }
 
       const refreshInput = document.querySelector(".refresh-input");
-      const refreshButton = document.querySelector(".refresh-button");
+      const refreshButton = document.querySelector("[data-refresh-button]");
       const extractIds = (text) => {
         const mbidRegex =
           /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
@@ -1652,7 +878,7 @@ __REPLICATION_BUTTON__
         }
       });
       const actionButtons = document.querySelectorAll(
-        ".filter-actions .action-button"
+        ".actions_box .action-button"
       );
       const applyAllMenusButton = actionButtons[0];
       const resetAllMenusButton = actionButtons[1];
@@ -1702,7 +928,14 @@ __REPLICATION_BUTTON__
           const keepOnly =
             !countText || countText === "no limit" ? null : Number.parseInt(countText, 10);
           const preferText = getMenuText(4).toLowerCase();
-          const prefer = !preferText || preferText === "any" ? null : preferText;
+          const preferValue =
+            preferText === "digital"
+              ? 0
+              : preferText === "analog"
+                ? 1
+                : 2;
+          const prefer =
+            preferValue === 0 ? "digital" : preferValue === 1 ? "analog" : null;
 
           const payload = {
             enabled,
@@ -1710,6 +943,7 @@ __REPLICATION_BUTTON__
             include_media_formats: include,
             keep_only_media_count: Number.isFinite(keepOnly) ? keepOnly : null,
             prefer,
+            prefer_value: preferValue,
           };
           try {
             const headers = { "Content-Type": "application/json" };
@@ -1770,7 +1004,7 @@ __REPLICATION_BUTTON__
 
       const syncActionButtonWidth = () => {
         const probe = document.createElement("span");
-        probe.className = "refresh-button__inner";
+        probe.className = "action-button__inner";
         probe.style.position = "absolute";
         probe.style.visibility = "hidden";
         probe.style.pointerEvents = "none";
@@ -1794,6 +1028,35 @@ __REPLICATION_BUTTON__
       window.addEventListener("resize", scheduleActionButtonSync);
       if (document.fonts && document.fonts.ready) {
         document.fonts.ready.then(scheduleActionButtonSync).catch(() => {});
+      }
+
+      const syncRefreshInputHeight = () => {
+        const filterBox = document.querySelector(
+          '[data-tab-panel="filter-details"] .filters_box'
+        );
+        const refreshInput = document.querySelector(".refresh-input");
+        if (!filterBox || !refreshInput) {
+          return;
+        }
+        const height = Math.round(filterBox.getBoundingClientRect().height);
+        if (height > 0) {
+          refreshInput.style.minHeight = `${height}px`;
+        }
+      };
+
+      syncRefreshInputHeight();
+      if (window.ResizeObserver) {
+        const filterBox = document.querySelector(
+          '[data-tab-panel="filter-details"] .filters_box'
+        );
+        if (filterBox) {
+          const observer = new ResizeObserver(() => {
+            syncRefreshInputHeight();
+          });
+          observer.observe(filterBox);
+        }
+      } else {
+        window.addEventListener("resize", syncRefreshInputHeight);
       }
 
       const themeToggle = document.querySelector("[data-theme-toggle]");

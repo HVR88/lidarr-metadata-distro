@@ -41,7 +41,7 @@ def build_preview_html() -> str:
     )
 
     replacements = {
-        "__ICON_URL__": "assets/lmbridge-icon.png",
+        "__ICON_URL__": "lmbridge-icon.png",
         "__LM_VERSION__": "1.9.7.10",
         "__LM_PLUGIN_VERSION__": "1.9.7.10",
         "__LM_PLUGIN_LABEL__": "LM Bridge Plugin",
@@ -93,6 +93,7 @@ def build_preview_html() -> str:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     default_output = root / "dist" / "root-preview.html"
+    css_source = root / "overlay" / "bridge" / "lidarrmetadata" / "assets" / "root.css"
 
     parser = argparse.ArgumentParser(description="Generate a local preview of the LM Bridge landing page.")
     parser.add_argument("output", nargs="?", default=str(default_output), help="Output HTML path")
@@ -102,6 +103,8 @@ def main() -> int:
     output_path = Path(args.output).expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(build_preview_html(), encoding="utf-8")
+    if css_source.exists():
+        (output_path.parent / "root.css").write_text(css_source.read_text(encoding="utf-8"), encoding="utf-8")
     print(output_path)
     if args.open:
         try:
