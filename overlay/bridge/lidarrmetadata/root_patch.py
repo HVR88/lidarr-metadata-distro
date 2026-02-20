@@ -5,7 +5,6 @@ from pathlib import Path
 import re
 import time
 import asyncio
-import logging
 from datetime import datetime, timezone
 from typing import Optional, Tuple, Iterable, Dict
 
@@ -45,7 +44,7 @@ _REPLICATION_NOTIFY_FILE = Path(
     )
 )
 _LAST_REPLICATION_NOTIFY: Optional[dict] = None
-_LOG = logging.getLogger(__name__)
+_THEME_FILE = Path(os.getenv("LMBRIDGE_THEME_FILE", str(_STATE_DIR / "theme.txt")))
 
 
 def _normalize_version_string(value: Optional[str]) -> str:
@@ -242,6 +241,43 @@ def _format_replication_date(value: object) -> str:
     return f"{date_part} {time_part}"
 
 
+def _format_replication_date_html(value: object) -> str:
+    label = _format_replication_date(value)
+    if not label:
+        return html.escape(label)
+    if label.lower() == "unknown":
+        return html.escape(label)
+    parts = label.rsplit(" ", 1)
+    if len(parts) != 2 or parts[1] not in {"AM", "PM"}:
+        return html.escape(label)
+    base = html.escape(parts[0])
+    ampm = html.escape(parts[1])
+    return f'{base}&nbsp;<span class="ampm">{ampm}</span>'
+
+
+def _format_schedule_html(value: Optional[str]) -> str:
+    if value is None:
+        return html.escape("unknown")
+    text = str(value).strip()
+    if not text:
+        return html.escape("unknown")
+    pattern = re.compile(r"\b([01]?\d|2[0-3]):([0-5]\d)(?:\s*([APap][Mm]))?\b")
+    parts = []
+    last = 0
+    for match in pattern.finditer(text):
+        parts.append(html.escape(text[last : match.start()]))
+        hour = int(match.group(1))
+        minute = match.group(2)
+        ampm = (match.group(3) or ("AM" if hour < 12 else "PM")).upper()
+        hour12 = hour % 12 or 12
+        parts.append(
+            f'{hour12}:{minute}&nbsp;<span class="ampm">{ampm}</span>'
+        )
+        last = match.end()
+    parts.append(html.escape(text[last:]))
+    return "".join(parts)
+
+
 def _read_replication_status() -> Tuple[bool, str]:
     status_path = Path(
         os.getenv(
@@ -282,6 +318,24 @@ def _write_replication_notify_state(payload: dict) -> None:
         _REPLICATION_NOTIFY_FILE.parent.mkdir(parents=True, exist_ok=True)
         _REPLICATION_NOTIFY_FILE.write_text(json.dumps(payload))
         _LAST_REPLICATION_NOTIFY = payload
+    except Exception:
+        return
+
+
+def _read_theme() -> str:
+    try:
+        theme = _THEME_FILE.read_text().strip().lower()
+    except Exception:
+        return ""
+    return theme if theme in {"dark", "light"} else ""
+
+
+def _write_theme(theme: str) -> None:
+    if theme not in {"dark", "light"}:
+        return
+    try:
+        _THEME_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _THEME_FILE.write_text(theme)
     except Exception:
         return
 
@@ -565,7 +619,7 @@ def register_root_route() -> None:
             ):
                 return jsonify("Unauthorized"), 401
             use_remote, start_url, _status_url, header_pair = _replication_remote_config()
-            _LOG.info(
+            upstream_app.app.logger.info(
                 "Replication start requested (remote=%s, url=%s)",
                 "true" if use_remote else "false",
                 start_url,
@@ -652,8 +706,29 @@ def register_root_route() -> None:
                 payload["finished_at"] = datetime.now(timezone.utc).isoformat()
             payload["finished_label"] = _format_replication_date(payload["finished_at"])
             _write_replication_notify_state(payload)
-            _LOG.info("Replication notify received: %s", payload)
+            upstream_app.app.logger.info("Replication notify received: %s", payload)
             return jsonify({"ok": True})
+
+    for rule in upstream_app.app.url_map.iter_rules():
+        if rule.rule == "/theme":
+            break
+    else:
+
+        @upstream_app.app.route("/theme", methods=["GET", "POST"])
+        async def _lmbridge_theme():
+            if request.method == "GET":
+                return jsonify({"theme": _read_theme()})
+            auth_key = upstream_app.app.config.get("INVALIDATE_APIKEY")
+            if auth_key and request.headers.get("authorization") != auth_key:
+                return jsonify("Unauthorized"), 401
+            payload = await request.get_json(silent=True) or {}
+            if not isinstance(payload, dict):
+                payload = {}
+            theme = str(payload.get("theme") or "").strip().lower()
+            if theme not in {"dark", "light"}:
+                return jsonify({"error": "invalid theme"}), 400
+            _write_theme(theme)
+            return jsonify({"ok": True, "theme": theme})
 
     async def _lmbridge_root_route():
         replication_date = None
@@ -683,12 +758,14 @@ def register_root_route() -> None:
             value = str(value).strip()
             return value if value else "unknown"
 
+        replication_schedule = _format_replication_schedule()
+        index_schedule = _format_index_schedule()
         info = {
             "version": fmt(_read_version()),
             "plugin_version": fmt(_read_last_plugin_version()),
             "mbms_plus_version": fmt(_read_mbms_plus_version()),
-            "mbms_replication_schedule": fmt(_format_replication_schedule()),
-            "mbms_index_schedule": fmt(_format_index_schedule()),
+            "mbms_replication_schedule": fmt(replication_schedule),
+            "mbms_index_schedule": fmt(index_schedule),
             "lidarr_version": fmt(lidarr_version),
             "lidarr_version_label": lidarr_version_label,
             "metadata_version": fmt(lidarrmetadata.__version__),
@@ -697,6 +774,12 @@ def register_root_route() -> None:
             "replication_date": _format_replication_date(replication_date),
             "uptime": _format_uptime(time.time() - _START_TIME),
         }
+        replication_date_html = _format_replication_date_html(replication_date)
+        replication_schedule_html = _format_schedule_html(
+            info["mbms_replication_schedule"]
+        )
+        index_schedule_html = _format_schedule_html(info["mbms_index_schedule"])
+        theme_value = _read_theme()
         try:
             from lidarrmetadata import release_filters
 
@@ -836,6 +919,8 @@ def register_root_route() -> None:
             "__MBMS_INDEX_SCHEDULE__": safe["mbms_index_schedule"],
             "__METADATA_VERSION__": safe["metadata_version"],
             "__REPLICATION_DATE__": safe["replication_date"],
+            "__REPLICATION_DATE_HTML__": replication_date_html,
+            "__THEME__": html.escape(theme_value),
             "__UPTIME__": safe["uptime"],
             "__VERSION_URL__": html.escape(version_url),
             "__CACHE_CLEAR_URL__": html.escape(cache_clear_url),
@@ -934,11 +1019,11 @@ def register_root_route() -> None:
                 "          </div>",
                 '          <div class="pill">',
                 '            <div class="label">MBMS Index Schedule</div>',
-                f'            <div class="value">{safe["mbms_index_schedule"]}</div>',
+                f'            <div class="value">{index_schedule_html}</div>',
                 "          </div>",
                 '          <div class="pill">',
                 '            <div class="label">MBMS Replication Schedule</div>',
-                f'            <div class="value">{safe["mbms_replication_schedule"]}</div>',
+                f'            <div class="value">{replication_schedule_html}</div>',
                 "          </div>",
             ]
         )

@@ -31,7 +31,7 @@ def build_preview_html() -> str:
             "          </div>",
             '          <div class="pill">',
             '            <div class="label">MBMS Index Schedule</div>',
-            '            <div class="value">daily @ 03:00</div>',
+            '            <div class="value">daily @ 3:00&nbsp;<span class="ampm">AM</span></div>',
             "          </div>",
             '          <div class="pill">',
             '            <div class="label">MBMS Replication Schedule</div>',
@@ -62,15 +62,17 @@ def build_preview_html() -> str:
             '            <a class="pill-button" href="http://localhost:8686" target="_blank" rel="noopener">Open</a>'
         ),
         "__MBMS_REPLICATION_SCHEDULE__": "hourly @ :15",
-        "__MBMS_INDEX_SCHEDULE__": "daily @ 03:00",
+        "__MBMS_INDEX_SCHEDULE__": "daily @ 3:00 AM",
         "__METADATA_VERSION__": "3.0.0",
-        "__REPLICATION_DATE__": "2026-02-19 1:00 PM",
+        "__REPLICATION_DATE__": "2026-02-20 12:23 AM",
+        "__REPLICATION_DATE_HTML__": '2026-02-20 12:23&nbsp;<span class="ampm">AM</span>',
         "__UPTIME__": "3h 12m",
         "__VERSION_URL__": "/version",
         "__CACHE_CLEAR_URL__": "/cache/clear",
         "__CACHE_EXPIRE_URL__": "/cache/expire",
         "__REPLICATION_START_URL__": "/replication/start",
         "__REPLICATION_STATUS_URL__": "/replication/status",
+        "__THEME__": "dark",
         "__REPLICATION_BUTTON__": (
             '            <button class="pill-button" type="button" data-replication-url="/replication/start">'
             '<span class="pill-button__inner">Start</span></button>'

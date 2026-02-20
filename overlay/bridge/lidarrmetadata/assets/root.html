@@ -8,6 +8,7 @@
       :root {
         --bg1: #f6f1e9;
         --bg2: #e6f2f3;
+        --bg3: #e2eaeb;
         --ink: #1f2c33;
         --muted: #55666f;
         --accent: #0b7d6d;
@@ -50,9 +51,30 @@
         );
         --accent-border: rgba(109, 208, 0, 0.4);
         --card: rgba(255, 255, 255, 0.88);
+        --panel: #ffffff;
         --border: rgba(31, 44, 51, 0.14);
         --shadow: 0 12px 30px rgba(26, 38, 45, 0.14);
         --soft-shadow: 0 6px 16px rgba(26, 38, 45, 0.12);
+        --action-button-size: 40px;
+      }
+      body[data-theme="dark"] {
+        --bg1: #0f1316;
+        --bg2: #17262b;
+        --bg3: #0c1114;
+        --ink: #c6d4dd;
+        --muted: #97aab4;
+        --card: rgba(18, 23, 27, 0.92);
+        --panel: rgba(22, 28, 32, 0.92);
+        --border: rgba(231, 237, 240, 0.14);
+        --shadow: 0 16px 34px rgba(0, 0, 0, 0.45);
+        --soft-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+        --accent-gradient-soft: linear-gradient(
+          135deg,
+          rgba(220, 255, 220, 0.36),
+          rgba(180, 240, 190, 0.3),
+          rgba(255, 220, 160, 0.26)
+        );
+        --accent-border: rgba(190, 235, 190, 0.36);
       }
       * {
         box-sizing: border-box;
@@ -64,8 +86,8 @@
           "Space Grotesk", "IBM Plex Sans", "Source Sans 3", sans-serif;
         background:
           radial-gradient(1200px 700px at 10% 0%, var(--bg2), transparent 60%),
-          radial-gradient(900px 600px at 100% 0%, #f8e8d4, transparent 55%),
-          linear-gradient(180deg, var(--bg1), #fbfbfb 65%);
+          radial-gradient(900px 600px at 100% 0%, rgba(48, 72, 84, 0.55), transparent 55%),
+          linear-gradient(180deg, var(--bg1), var(--bg3) 65%);
         min-height: 100vh;
       }
       .wrap {
@@ -80,6 +102,7 @@
         padding: 28px 28px 24px;
         box-shadow: var(--shadow);
         backdrop-filter: blur(6px);
+        position: relative;
       }
       .hero {
         text-align: center;
@@ -111,7 +134,7 @@
         border: 1px solid var(--border);
         border-radius: 14px;
         padding: 12px 14px;
-        background: #ffffff;
+        background: var(--panel);
         box-shadow: var(--soft-shadow);
       }
       .pill .label,
@@ -134,7 +157,7 @@
         text-transform: uppercase;
         font-size: 12px;
         width: 64px;
-        height: 40px;
+        height: var(--action-button-size);
         border-radius: 8px;
         cursor: pointer;
         display: inline-flex;
@@ -149,6 +172,71 @@
         box-shadow: none;
         transition: none;
         padding: 0;
+      }
+      .corner-button {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: var(--action-button-size);
+        height: var(--action-button-size);
+        border: 0;
+        background: none;
+        padding: 0;
+        cursor: pointer;
+        z-index: 3;
+      }
+      .corner-button__inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--muted);
+        font-weight: 700;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--soft-shadow);
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .corner-button:hover .corner-button__inner {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(17, 27, 32, 0.16);
+      }
+      .corner-button:active .corner-button__inner {
+        transform: translateY(2px) !important;
+        box-shadow: none !important;
+      }
+      body[data-theme="dark"] .corner-button__inner {
+        color: var(--ink);
+      }
+      body[data-theme="dark"] .pill-button__inner {
+        color: #1f2a1a;
+      }
+      body[data-theme="dark"] .refresh-button__inner {
+        color: #1f2a1a;
+      }
+      body[data-theme="dark"] .pill-button.update .pill-button__inner,
+      body[data-theme="dark"] .pill-button.danger .pill-button__inner {
+        color: #3b1c0f;
+        background-color: rgba(255, 242, 234, 0.32);
+        background-image: linear-gradient(
+          135deg,
+          rgba(255, 224, 110, 0.18),
+          rgba(255, 168, 40, 0.16),
+          rgba(255, 122, 30, 0.14),
+          rgba(255, 90, 40, 0.13),
+          rgba(180, 70, 170, 0.12)
+        );
+      }
+      body[data-theme="dark"] .pill-button__inner,
+      body[data-theme="dark"] .refresh-button__inner,
+      body[data-theme="dark"] .link,
+      body[data-theme="dark"] .corner-button__inner {
+        box-shadow: none !important;
       }
       .pill-button.wide {
         width: 92px;
@@ -226,6 +314,13 @@
         font-size: 16px;
         font-weight: 600;
       }
+      .replication-date {
+        white-space: nowrap;
+      }
+      .ampm {
+        font-size: 0.7em;
+        letter-spacing: 0.04em;
+      }
       .links {
         margin-top: 20px;
         display: flex;
@@ -246,7 +341,7 @@
       .config {
         margin: 20px auto 0;
         border: 1px solid var(--border);
-        background: #fff;
+        background: var(--panel);
         border-radius: 12px;
         padding: 14px 16px;
         display: grid;
@@ -257,7 +352,7 @@
       .tabs {
         margin: 20px 0 0;
         border: 1px solid var(--border);
-        background: #fff;
+        background: var(--panel);
         border-radius: 12px;
         padding: 12px 14px 16px;
         width: 100%;
@@ -312,6 +407,7 @@
         min-height: 180px;
         border: 1px solid var(--border);
         border-radius: 12px;
+        background: var(--panel);
         padding: 12px;
         font-size: 14px;
         font-family: "IBM Plex Sans", "Source Sans 3", sans-serif;
@@ -328,10 +424,10 @@
         text-transform: uppercase;
         font-size: 12px;
         padding: 0;
-        border-radius: 999px;
         cursor: pointer;
-        height: fit-content;
         position: relative;
+        height: fit-content;
+        border-radius: 999px;
       }
       .refresh-button::before {
         content: "";
@@ -437,6 +533,7 @@
       }
       body.suppress-hover .pill-button__inner,
       body.suppress-hover .refresh-button__inner,
+      body.suppress-hover .corner-button__inner,
       body.suppress-hover .link {
         transform: translateY(0) !important;
         box-shadow: none !important;
@@ -444,6 +541,7 @@
       body.suppress-hover .pill-button:hover .pill-button__inner,
       body.suppress-hover .pill-button.overlay:hover .pill-button__inner,
       body.suppress-hover .refresh-button:hover .refresh-button__inner,
+      body.suppress-hover .corner-button:hover .corner-button__inner,
       body.suppress-hover .link:hover {
         transform: translateY(0) !important;
         box-shadow: none !important;
@@ -479,6 +577,15 @@
   <body>
     <main class="wrap">
       <section class="card">
+        <button
+          class="corner-button"
+          type="button"
+          aria-label="Toggle dark mode"
+          aria-pressed="false"
+          data-theme-toggle
+        >
+          <span class="corner-button__inner"></span>
+        </button>
         <div class="hero">
           <img src="__ICON_URL__" alt="LM Bridge" width="500" />
           <h1 class="hero-title">LM Bridge Metadata Handler</h1>
@@ -512,30 +619,15 @@ __LIDARR_OPEN__
           </div>
           <div class="__REPLICATION_PILL_CLASS__" data-replication-pill>
             <div class="label">Last Replication</div>
-            <div class="value" data-replication-value>__REPLICATION_DATE__</div>
+            <div class="value replication-date" data-replication-value>
+              __REPLICATION_DATE_HTML__
+            </div>
 __REPLICATION_BUTTON__
           </div>
         </div>
         <div class="links">
           <div class="links-left"></div>
-          <div class="links-right">
-            <button
-              class="link"
-              type="button"
-              data-cache-action="expire"
-              data-cache-url="__CACHE_EXPIRE_URL__"
-            >
-              <span class="link__inner">Expire Cache Tables</span>
-            </button>
-            <button
-              class="link link-danger"
-              type="button"
-              data-cache-action="clear"
-              data-cache-url="__CACHE_CLEAR_URL__"
-            >
-              <span class="link__inner">Clear Cache Tables</span>
-            </button>
-          </div>
+          <div class="links-right"></div>
         </div>
         <div class="tabs" data-tabs>
           <div class="tab-buttons">
@@ -562,7 +654,29 @@ __REPLICATION_BUTTON__
             </div>
           </div>
           <div class="tab-panel" data-tab-panel="tools">
-            <div class="config"></div>
+            <div class="config">
+              <div class="links">
+                <div class="links-left"></div>
+                <div class="links-right">
+                  <button
+                    class="link"
+                    type="button"
+                    data-cache-action="expire"
+                    data-cache-url="__CACHE_EXPIRE_URL__"
+                  >
+                    <span class="link__inner">Expire Cache Tables</span>
+                  </button>
+                  <button
+                    class="link link-danger"
+                    type="button"
+                    data-cache-action="clear"
+                    data-cache-url="__CACHE_CLEAR_URL__"
+                  >
+                    <span class="link__inner">Clear Cache Tables</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="foot">
@@ -585,6 +699,7 @@ __REPLICATION_BUTTON__
       const cacheButtons = document.querySelectorAll("[data-cache-action]");
       const invalidateApiKey = "__INVALIDATE_APIKEY__";
       const replicationStatusUrl = "__REPLICATION_STATUS_URL__";
+      const serverTheme = "__THEME__";
 
       const suppressHover = () => {
         document.body.classList.add("suppress-hover");
@@ -667,6 +782,28 @@ __REPLICATION_BUTTON__
         }
       };
 
+      const escapeHtml = (value) => {
+        const map = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        };
+        return String(value).replace(/[&<>"']/g, (ch) => map[ch] || ch);
+      };
+
+      const formatReplicationLabel = (label) => {
+        const text = String(label || "").trim();
+        const match = text.match(/^(.*)\s(AM|PM)$/);
+        if (!match) {
+          return escapeHtml(text);
+        }
+        const base = escapeHtml(match[1]);
+        const ampm = escapeHtml(match[2]);
+        return `${base}&nbsp;<span class="ampm">${ampm}</span>`;
+      };
+
       const setReplicationLast = (last) => {
         if (!replicationValue || !last || typeof last !== "object") {
           return;
@@ -678,7 +815,7 @@ __REPLICATION_BUTTON__
           last.date ||
           "";
         if (label) {
-          replicationValue.textContent = label;
+          replicationValue.innerHTML = formatReplicationLabel(label);
         }
       };
 
@@ -923,6 +1060,49 @@ __REPLICATION_BUTTON__
           } finally {
             refreshButton.disabled = false;
           }
+        });
+      }
+
+      const themeToggle = document.querySelector("[data-theme-toggle]");
+      const applyTheme = (theme) => {
+        if (theme === "dark") {
+          document.body.dataset.theme = "dark";
+        } else {
+          delete document.body.dataset.theme;
+        }
+        if (themeToggle) {
+          themeToggle.setAttribute(
+            "aria-pressed",
+            theme === "dark" ? "true" : "false"
+          );
+        }
+      };
+      const storedTheme = localStorage.getItem("lmbridge-theme");
+      if (serverTheme === "dark" || serverTheme === "light") {
+        applyTheme(serverTheme);
+        localStorage.setItem("lmbridge-theme", serverTheme);
+      } else if (storedTheme === "dark" || storedTheme === "light") {
+        applyTheme(storedTheme);
+      } else if (
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      ) {
+        applyTheme("dark");
+      }
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          const next =
+            document.body.dataset.theme === "dark" ? "light" : "dark";
+          applyTheme(next);
+          localStorage.setItem("lmbridge-theme", next);
+          fetch("/theme", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(invalidateApiKey ? { Authorization: invalidateApiKey } : {}),
+            },
+            body: JSON.stringify({ theme: next }),
+          }).catch(() => {});
         });
       }
     </script>
