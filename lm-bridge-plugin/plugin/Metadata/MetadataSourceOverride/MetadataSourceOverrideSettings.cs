@@ -40,9 +40,9 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
                 .WithMessage("Keep only # media must be 0 or greater.");
 
             RuleFor(x => x.KeepOnlyMediaCount)
-                .LessThanOrEqualTo(999)
+                .LessThanOrEqualTo(20)
                 .When(x => x.KeepOnlyMediaCount.HasValue)
-                .WithMessage("Keep only # media must be 999 or less.");
+                .WithMessage("Keep only # media must be 20 or less.");
 
             RuleFor(x => x.ExcludeMediaFormats)
                 .Custom((values, context) =>
@@ -124,10 +124,10 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
         [FieldDefinition(2, Label = "or Include Media Formats", HelpText = "List of release formats to keep - remove everything else. examples: SACD, CD, Digital Media, etc. (Special aliases: analog / digital)", HelpTextWarning = "Mutually exclusive with Exclude Media Formats", HelpLink = "https://github.com/HVR88/Docs-Extras/blob/master/docs/Media-Formats.md", Type = FieldType.Tag, Section = MetadataSectionType.Metadata)]
         public IEnumerable<string> KeepOnlyFormats { get; set; } = Array.Empty<string>();
 
-        [FieldDefinition(3, Label = "Max. # of Media", HelpText = "Keep only up to this maximim number of media issues per release (0=keep all, default)", Type = FieldType.Number, Section = MetadataSectionType.Metadata)]
+        [FieldDefinition(3, Label = "Max. # of Media", HelpText = "Keep only up to this maximum number of media issues per release (0=keep all, default). Max 20.", Type = FieldType.Number, Section = MetadataSectionType.Metadata)]
         public int? KeepOnlyMediaCount { get; set; }
 
-        [FieldDefinition(4, Label = "Prefer", HelpText = "when Max # set. (Digital or Analog format priority)", HelpLink = "https://github.com/HVR88/Docs-Extras/blob/master/docs/Media-Formats.md", Type = FieldType.Select, SelectOptions = typeof(MediaPreferOption), Section = MetadataSectionType.Metadata)]
+        [FieldDefinition(4, Label = "Prefer", HelpText = "When Max # set. (Any, Digital, or Analog format priority)", HelpLink = "https://github.com/HVR88/Docs-Extras/blob/master/docs/Media-Formats.md", Type = FieldType.Select, SelectOptions = typeof(MediaPreferOption), Section = MetadataSectionType.Metadata)]
         public int Prefer { get; set; } = (int)MediaPreferOption.Digital;
 
         [FieldDefinition(5, Label = "Refresh Releases", HelpText = "One-time refresh of all releases to update formats. Releases will otherwise update slowly over time, as they're periodically refreshed by Lidarr", HelpTextWarning = "NOTE: This takes a long time on large libraries", Type = FieldType.Checkbox, Section = MetadataSectionType.Metadata)]
@@ -140,6 +140,8 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
 
     public enum MediaPreferOption
     {
+        [FieldOption("Any")]
+        Any = 2,
         [FieldOption("Digital")]
         Digital = 0,
         [FieldOption("Analog")]

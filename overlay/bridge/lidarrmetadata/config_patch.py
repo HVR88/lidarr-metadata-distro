@@ -27,8 +27,24 @@ def register_config_routes() -> None:
 
     _load_persisted_config()
 
-    @upstream_app.app.route("/config/release-filter", methods=["POST"])
+    @upstream_app.app.route("/config/release-filter", methods=["GET", "POST"])
     async def _lmbridge_release_filter_config():
+        if request.method == "GET":
+            data = {
+                "enabled": bool(_read_enabled_flag()),
+                "exclude_media_formats": release_filters.get_runtime_media_exclude() or [],
+                "include_media_formats": release_filters.get_runtime_media_include() or [],
+                "keep_only_media_count": release_filters.get_runtime_media_keep_only(),
+                "prefer": release_filters.get_runtime_media_prefer(),
+            }
+            data.update(
+                {
+                    "excludeMediaFormats": data["exclude_media_formats"],
+                    "includeMediaFormats": data["include_media_formats"],
+                    "keepOnlyMediaCount": data["keep_only_media_count"],
+                }
+            )
+            return jsonify(data)
         payload = await request.get_json(silent=True) or {}
         enabled = _is_truthy(payload.get("enabled", True))
         lidarr_base_url, base_url_provided = _extract_lidarr_base_url(payload)
@@ -354,6 +370,14 @@ def _load_persisted_config() -> None:
     release_filters.set_runtime_media_include(include)
     release_filters.set_runtime_media_keep_only(keep_only_count)
     release_filters.set_runtime_media_prefer(prefer)
+
+
+def _read_enabled_flag() -> bool:
+    try:
+        data = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return True
+    return bool(data.get("enabled", True))
 
     lidarr_version = (data.get("lidarr_version") or "").strip()
     if lidarr_version:

@@ -14,11 +14,11 @@ def build_preview_html() -> str:
 
     config_html = "\n".join(
         [
-            '          <div class="config-row"><div class="config-label">Filtering Enabled</div><div class="config-value">Yes</div></div>',
-            '          <div class="config-row"><div class="config-label">Exclude Media Formats</div><div class="config-value">vinyl, cassette</div></div>',
-            '          <div class="config-row"><div class="config-label">Include Media Formats</div><div class="config-value">all</div></div>',
-            '          <div class="config-row"><div class="config-label">Max Media Count</div><div class="config-value">no limit</div></div>',
-            '          <div class="config-row"><div class="config-label">Prefer Media Type</div><div class="config-value">digital</div></div>',
+            '          <div class="config-row"><div class="config-label">Filtering Enabled</div><div class="config-value"><span class="config-value-text">Yes</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
+            '          <div class="config-row"><div class="config-label">Exclude Media Formats *</div><div class="config-value"><span class="config-value-text">vinyl, cassette</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
+            '          <div class="config-row"><div class="config-label">Include Media Formats *</div><div class="config-value"><span class="config-value-text">all</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
+            '          <div class="config-row"><div class="config-label">Max Media Count</div><div class="config-value"><span class="config-value-text">no limit</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
+            '          <div class="config-row"><div class="config-label">Prefer Media Type</div><div class="config-value"><span class="config-value-text">digital</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
         ]
     )
 

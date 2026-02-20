@@ -7,7 +7,7 @@
     <style>
       :root {
         --bg1: #f6f1e9;
-        --bg2: #e6f2f3;
+        --bg2: #d6f5d6;
         --bg3: #e2eaeb;
         --ink: #1f2c33;
         --muted: #55666f;
@@ -56,6 +56,9 @@
         --shadow: 0 12px 30px rgba(26, 38, 45, 0.14);
         --soft-shadow: 0 6px 16px rgba(26, 38, 45, 0.12);
         --action-button-size: 40px;
+        --panel-content-width: 720px;
+        --config-row-pad: 0.375rem;
+        --config-row-shift: 0.25rem;
       }
       body[data-theme="dark"] {
         --bg1: #0f1316;
@@ -85,8 +88,8 @@
         font-family:
           "Space Grotesk", "IBM Plex Sans", "Source Sans 3", sans-serif;
         background:
-          radial-gradient(1200px 700px at 10% 0%, var(--bg2), transparent 60%),
-          radial-gradient(900px 600px at 100% 0%, rgba(48, 72, 84, 0.55), transparent 55%),
+          radial-gradient(1300px 760px at 10% 0%, var(--bg2), transparent 62%),
+          radial-gradient(1600px 980px at 100% 0%, rgba(255, 178, 96, 0.12), transparent 78%),
           linear-gradient(180deg, var(--bg1), var(--bg3) 65%);
         min-height: 100vh;
       }
@@ -211,17 +214,23 @@
         box-shadow: none !important;
       }
       body[data-theme="dark"] .corner-button__inner {
-        color: var(--ink);
+        color: #c2cdd4;
       }
       body[data-theme="dark"] .pill-button__inner {
-        color: #1f2a1a;
+        color: #c2cdd4;
       }
       body[data-theme="dark"] .refresh-button__inner {
-        color: #1f2a1a;
+        color: #c2cdd4;
+      }
+      body[data-theme="dark"] .action-button__inner {
+        color: #c2cdd4;
+      }
+      body[data-theme="dark"] .config-action__inner {
+        color: #c2cdd4;
       }
       body[data-theme="dark"] .pill-button.update .pill-button__inner,
       body[data-theme="dark"] .pill-button.danger .pill-button__inner {
-        color: #3b1c0f;
+        color: #c2cdd4;
         background-color: rgba(255, 242, 234, 0.32);
         background-image: linear-gradient(
           135deg,
@@ -234,6 +243,8 @@
       }
       body[data-theme="dark"] .pill-button__inner,
       body[data-theme="dark"] .refresh-button__inner,
+      body[data-theme="dark"] .action-button__inner,
+      body[data-theme="dark"] .config-action__inner,
       body[data-theme="dark"] .link,
       body[data-theme="dark"] .corner-button__inner {
         box-shadow: none !important;
@@ -346,7 +357,8 @@
         padding: 14px 16px;
         display: grid;
         gap: 6px;
-        width: clamp(280px, 60%, 720px);
+        width: var(--panel-content-width);
+        max-width: 100%;
         box-shadow: var(--soft-shadow);
       }
       .tabs {
@@ -395,12 +407,44 @@
       .tab-panel[data-tab-panel="tools"] {
         padding-top: 20px;
       }
+      .filter-box {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: stretch;
+        margin: 20px auto 0;
+        width: var(--panel-content-width);
+        max-width: 100%;
+      }
+      .filter-box .config {
+        margin: 0;
+        width: 100%;
+      }
+      .filter-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-self: start;
+        height: 100%;
+        width: var(--action-button-width, 180px);
+      }
+      .filter-note {
+        margin-top: auto;
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.01em;
+        text-align: left;
+        width: 100%;
+        align-self: flex-end;
+      }
       .refresh-box {
         display: grid;
         grid-template-columns: 1fr auto;
         gap: 12px;
         align-items: start;
-        margin-top: 20px;
+        margin: 20px auto 0;
+        width: var(--panel-content-width);
+        max-width: 100%;
       }
       .refresh-input {
         width: 100%;
@@ -413,6 +457,10 @@
         font-family: "IBM Plex Sans", "Source Sans 3", sans-serif;
         color: var(--ink);
         resize: vertical;
+        box-shadow: inset 0 1px 2px rgba(26, 38, 45, 0.08);
+      }
+      .refresh-input:focus-visible {
+        outline: none;
         box-shadow: inset 0 1px 2px rgba(26, 38, 45, 0.08);
       }
       .refresh-button {
@@ -434,6 +482,25 @@
         position: absolute;
         inset: -4px;
       }
+      .action-button {
+        border: 0;
+        background: none;
+        color: inherit;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-size: 12px;
+        padding: 0;
+        cursor: pointer;
+        position: relative;
+        height: fit-content;
+        border-radius: 999px;
+      }
+      .action-button::before {
+        content: "";
+        position: absolute;
+        inset: -4px;
+      }
       .refresh-button__inner {
         border: 1px solid var(--accent-border);
         background: var(--accent-gradient-soft);
@@ -443,6 +510,22 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        width: var(--action-button-width, auto);
+        box-shadow: none;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .action-button__inner {
+        border: 1px solid var(--accent-border);
+        background: var(--accent-gradient-soft);
+        color: #2f5f16;
+        padding: 10px 16px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--action-button-width, auto);
         box-shadow: none;
         transition:
           transform 0.15s ease,
@@ -452,29 +535,43 @@
         box-shadow: 0 6px 12px rgba(11, 125, 109, 0.2);
         transform: translateY(-2px);
       }
+      .action-button:hover .action-button__inner {
+        box-shadow: 0 6px 12px rgba(11, 125, 109, 0.2);
+        transform: translateY(-2px);
+      }
       .refresh-button:active .refresh-button__inner {
+        transform: translateY(2px);
+        box-shadow: none;
+      }
+      .action-button:active .action-button__inner {
         transform: translateY(2px);
         box-shadow: none;
       }
       .config-row {
         display: flex;
-        align-items: baseline;
+        align-items: center;
         justify-content: space-between;
         gap: 16px;
-        padding: 6px 0;
+        padding-top: calc(var(--config-row-pad) + var(--config-row-shift));
+        padding-bottom: calc(var(--config-row-pad) - var(--config-row-shift));
       }
       .config-row + .config-row {
         border-top: 1px dashed var(--border);
       }
+      .config-value {
+        padding-top: 0;
+      }
       .config-label {
-        font-size: 13px;
-        font-weight: 600;
+        font-size: 14px;
+        font-weight: 500;
         color: var(--muted);
+        white-space: nowrap;
       }
       .config-link {
         color: inherit;
         text-decoration: underline;
         text-underline-offset: 2px;
+        white-space: nowrap;
       }
       .config-link:hover {
         color: var(--accent);
@@ -482,12 +579,132 @@
       .config-value {
         font-size: 13px;
         font-weight: 600;
-        font-family:
-          "JetBrains Mono", "SFMono-Regular", "Consolas", "Liberation Mono",
-          monospace;
+        font-family: inherit;
         text-align: right;
-        white-space: normal;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        white-space: nowrap;
         word-break: break-word;
+      }
+      .config-value-text {
+        text-align: right;
+      }
+      .config-action {
+        border: 0;
+        background: none;
+        color: inherit;
+        padding: 0;
+        cursor: pointer;
+        position: relative;
+        width: 26px;
+        height: 26px;
+        flex: 0 0 auto;
+      }
+      .config-action::before {
+        content: "";
+        position: absolute;
+        inset: -4px;
+      }
+      .config-action__inner {
+        border: 1px solid var(--accent-border);
+        background: var(--accent-gradient-soft);
+        color: #2f5f16;
+        width: 100%;
+        height: 100%;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0;
+        line-height: 0;
+        box-shadow: none;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .config-action__inner::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 10px solid currentColor;
+      }
+      .config-menu {
+        position: absolute;
+        right: calc(100% + 8px);
+        bottom: 0;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 6px;
+        min-width: 140px;
+        box-shadow: var(--soft-shadow);
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        z-index: 5;
+      }
+      .config-menu.open {
+        display: flex;
+      }
+      .config-menu button {
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        font-weight: 600;
+        font-size: 12px;
+        text-align: left;
+        padding: 6px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .config-menu button:hover {
+        background: rgba(11, 125, 109, 0.12);
+      }
+      .config-menu button.selected {
+        background: rgba(11, 125, 109, 0.2);
+        color: var(--ink);
+      }
+      .config-menu button.config-menu-cancel {
+        margin-top: 4px;
+        border-top: 1px dashed var(--border);
+        padding-top: 8px;
+      }
+      .config-menu-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--ink);
+        white-space: nowrap;
+      }
+      .config-menu-check input {
+        margin: 0;
+        width: 14px;
+        height: 14px;
+        accent-color: var(--accent);
+      }
+      .config-menu-check:hover {
+        background: rgba(11, 125, 109, 0.12);
+      }
+      .config-menu-check.selected {
+        background: rgba(11, 125, 109, 0.2);
+      }
+      .config-action:hover .config-action__inner {
+        box-shadow: 0 6px 12px rgba(11, 125, 109, 0.2);
+        transform: translateY(-2px);
+      }
+      .config-action:active .config-action__inner {
+        transform: translateY(2px);
+        box-shadow: none;
       }
       .link {
         display: inline-flex;
@@ -533,6 +750,8 @@
       }
       body.suppress-hover .pill-button__inner,
       body.suppress-hover .refresh-button__inner,
+      body.suppress-hover .action-button__inner,
+      body.suppress-hover .config-action__inner,
       body.suppress-hover .corner-button__inner,
       body.suppress-hover .link {
         transform: translateY(0) !important;
@@ -541,6 +760,8 @@
       body.suppress-hover .pill-button:hover .pill-button__inner,
       body.suppress-hover .pill-button.overlay:hover .pill-button__inner,
       body.suppress-hover .refresh-button:hover .refresh-button__inner,
+      body.suppress-hover .action-button:hover .action-button__inner,
+      body.suppress-hover .config-action:hover .config-action__inner,
       body.suppress-hover .corner-button:hover .corner-button__inner,
       body.suppress-hover .link:hover {
         transform: translateY(0) !important;
@@ -632,7 +853,7 @@ __REPLICATION_BUTTON__
         <div class="tabs" data-tabs>
           <div class="tab-buttons">
             <button class="tab-button active" data-tab="filter-details">
-              Filter Details
+              Media Filters
             </button>
             <button class="tab-button" data-tab="refresh-releases">
               Refresh Releases
@@ -640,7 +861,21 @@ __REPLICATION_BUTTON__
             <button class="tab-button" data-tab="tools">Tools</button>
           </div>
           <div class="tab-panel active" data-tab-panel="filter-details">
-            <div class="config">__CONFIG_HTML__</div>
+            <div class="filter-box">
+              <div class="config">__CONFIG_HTML__</div>
+              <div class="filter-actions">
+                <button class="action-button" type="button">
+                  <span class="action-button__inner">Apply</span>
+                </button>
+                <button class="action-button" type="button">
+                  <span class="action-button__inner">Reset</span>
+                </button>
+                <div class="filter-note">
+                  * Use the LM Bridge plugin in Lidarr to write free text, which
+                  may be more useful to you
+                </div>
+              </div>
+            </div>
           </div>
           <div class="tab-panel" data-tab-panel="refresh-releases">
             <div class="refresh-box">
@@ -1061,6 +1296,504 @@ __REPLICATION_BUTTON__
             refreshButton.disabled = false;
           }
         });
+      }
+
+      const menuConfigForIndex = (index) => {
+        const mediaItems = [
+          { label: "ALL ANALOG", value: "all analog" },
+          { label: "ALL DIGITAL", value: "all digital" },
+          { label: "VINYL", value: "vinyl" },
+          { label: "CD", value: "cd" },
+          { label: "SACD", value: "sacd" },
+          { label: "TAPE", value: "tape" },
+          { label: "CASSETTE", value: "cassette" },
+          { label: "DIGITAL MEDIA", value: "digital media" },
+        ];
+        if (index === 0) {
+          return {
+            type: "single",
+            items: [
+              { label: "ENABLED", value: "enabled" },
+              { label: "DISABLED", value: "disabled" },
+            ],
+          };
+        }
+        if (index === 1) {
+          return {
+            type: "multi",
+            special: { label: "NONE", value: "none" },
+            items: mediaItems,
+          };
+        }
+        if (index === 2) {
+          return {
+            type: "multi",
+            special: { label: "ALL", value: "all" },
+            items: mediaItems,
+          };
+        }
+        if (index === 3) {
+          return {
+            type: "single",
+            items: [
+              { label: "NO LIMIT", value: "no limit" },
+              ...Array.from({ length: 20 }, (_, i) => {
+                const value = `${20 - i}`;
+                return { label: value, value };
+              }),
+              { label: "NO LIMIT", value: "no limit" },
+            ],
+          };
+        }
+        if (index === 4) {
+          return {
+            type: "single",
+            items: [
+              { label: "ANY", value: "any" },
+              { label: "DIGITAL", value: "digital" },
+              { label: "ANALOG", value: "analog" },
+            ],
+          };
+        }
+        return null;
+      };
+
+      const buildMenu = (config) => {
+        const menu = document.createElement("div");
+        menu.className = "config-menu";
+        menu.dataset.menuType = config.type;
+        if (config.special) {
+          const special = document.createElement("button");
+          special.type = "button";
+          special.textContent = config.special.label;
+          special.dataset.value = config.special.value;
+          special.className = "config-menu-item config-menu-special";
+          menu.appendChild(special);
+        }
+        if (config.type === "single") {
+          config.items.forEach((item) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = item.label;
+            button.dataset.value = item.value;
+            button.className = "config-menu-item";
+            menu.appendChild(button);
+          });
+        }
+        if (config.type === "multi") {
+          config.items.forEach((item) => {
+            const label = document.createElement("label");
+            label.className = "config-menu-check";
+            const input = document.createElement("input");
+            input.type = "checkbox";
+            input.dataset.value = item.value;
+            const text = document.createElement("span");
+            text.textContent = item.label;
+            label.appendChild(input);
+            label.appendChild(text);
+            menu.appendChild(label);
+          });
+          const cancel = document.createElement("button");
+          cancel.type = "button";
+          cancel.textContent = "CANCEL";
+          cancel.className = "config-menu-item config-menu-cancel";
+          menu.appendChild(cancel);
+        }
+        menu.addEventListener("click", (event) => {
+          event.stopPropagation();
+        });
+        return menu;
+      };
+
+      const configButtons = Array.from(
+        document.querySelectorAll("[data-config-menu]")
+      );
+      const configMenuState = new Map();
+      const configInitialState = [];
+      const configAppliedState = [];
+
+      const resetMultiMenu = (index) => {
+        const state = configMenuState.get(index);
+        if (!state || state.config.type !== "multi") {
+          return;
+        }
+        const { menu, valueText, config } = state;
+        menu.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+          input.checked = false;
+          input.closest(".config-menu-check")?.classList.remove("selected");
+        });
+        const specialButton = menu.querySelector(".config-menu-special");
+        specialButton?.classList.add("selected");
+        if (valueText && config.special) {
+          valueText.textContent = config.special.value;
+        }
+      };
+
+      const restoreMultiMenu = (index) => {
+        const state = configMenuState.get(index);
+        if (!state || state.config.type !== "multi") {
+          return;
+        }
+        const snapshot = state.lastActiveSnapshot;
+        if (snapshot && snapshot.checked && snapshot.checked.length) {
+          applyMultiSnapshot(state, snapshot);
+        } else {
+          resetMultiMenu(index);
+        }
+      };
+
+      const getMultiSnapshot = (menu, config, valueText) => {
+        const checked = Array.from(
+          menu.querySelectorAll('input[type="checkbox"]:checked')
+        ).map((input) => input.dataset.value || "");
+        const specialButton = menu.querySelector(".config-menu-special");
+        const specialSelected =
+          specialButton?.classList.contains("selected") ||
+          (!checked.length &&
+            valueText &&
+            valueText.textContent?.trim().toLowerCase() ===
+              config.special?.value);
+        return { checked, specialSelected: Boolean(specialSelected) };
+      };
+
+      const applyMultiSnapshot = (state, snapshot) => {
+        const { menu, valueText, config } = state;
+        const specialButton = menu.querySelector(".config-menu-special");
+        if (snapshot.specialSelected || !snapshot.checked.length) {
+          menu.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+            input.checked = false;
+            input.closest(".config-menu-check")?.classList.remove("selected");
+          });
+          specialButton?.classList.add("selected");
+          if (valueText && config.special) {
+            valueText.textContent = config.special.value;
+          }
+          return;
+        }
+        specialButton?.classList.remove("selected");
+        menu.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+          const checked = snapshot.checked.includes(input.dataset.value || "");
+          input.checked = checked;
+          input
+            .closest(".config-menu-check")
+            ?.classList.toggle("selected", checked);
+        });
+        if (valueText) {
+          valueText.textContent = snapshot.checked.join(", ");
+        }
+      };
+
+      configButtons.forEach((button, index) => {
+        const config = menuConfigForIndex(index);
+        if (!config) {
+          return;
+        }
+        const menu = buildMenu(config);
+        button.appendChild(menu);
+        const valueText = button
+          .closest(".config-value")
+          ?.querySelector(".config-value-text");
+        configMenuState.set(index, { button, menu, valueText, config });
+        configInitialState[index] = {
+          text: valueText?.textContent || "",
+          snapshot:
+            config.type === "multi"
+              ? getMultiSnapshot(menu, config, valueText)
+              : null,
+        };
+        configAppliedState[index] = {
+          text: configInitialState[index].text,
+          snapshot: configInitialState[index].snapshot,
+        };
+
+        const setSelectedSingle = (value) => {
+          menu.querySelectorAll("button").forEach((item) => {
+            item.classList.toggle(
+              "selected",
+              item.dataset.value?.toLowerCase() === value
+            );
+          });
+        };
+
+        const syncMultiDisplay = () => {
+          if (!valueText || config.type !== "multi") {
+            return;
+          }
+          const checked = Array.from(
+            menu.querySelectorAll('input[type="checkbox"]:checked')
+          ).map((input) => input.dataset.value || "");
+          if (!checked.length && config.special) {
+            valueText.textContent = config.special.value;
+          } else {
+            valueText.textContent = checked.join(", ");
+          }
+        };
+
+        if (valueText) {
+          const current = valueText.textContent?.trim().toLowerCase() || "";
+          if (config.type === "single") {
+            setSelectedSingle(current);
+          } else if (config.type === "multi") {
+            const tokens = current
+              .split(",")
+              .map((value) => value.trim())
+              .filter(Boolean);
+            if (config.special && current === config.special.value) {
+              menu
+                .querySelector(".config-menu-special")
+                ?.classList.add("selected");
+            } else {
+              menu.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+                const checked = tokens.includes(
+                  (input.dataset.value || "").toLowerCase()
+                );
+                input.checked = checked;
+                input.closest(".config-menu-check")?.classList.toggle(
+                  "selected",
+                  checked
+                );
+              });
+              if (tokens.length) {
+                configMenuState.get(index).lastActiveSnapshot = {
+                  checked: tokens,
+                  specialSelected: false,
+                };
+              }
+            }
+          }
+        }
+
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          configButtons.forEach((other) => {
+            if (other !== button) {
+              other.querySelector(".config-menu")?.classList.remove("open");
+            }
+          });
+          const willOpen = !menu.classList.contains("open");
+          if (willOpen && config.type === "multi") {
+            const snapshot = getMultiSnapshot(menu, config, valueText);
+            configMenuState.get(index).snapshot = snapshot;
+          }
+          menu.classList.toggle("open");
+        });
+
+        if (config.type === "single") {
+          menu.querySelectorAll("button").forEach((item) => {
+            item.addEventListener("click", () => {
+              if (valueText) {
+                valueText.textContent =
+                  item.dataset.value || item.textContent || "";
+              }
+              setSelectedSingle(item.dataset.value?.toLowerCase() || "");
+              menu.classList.remove("open");
+            });
+          });
+        }
+
+        if (config.type === "multi") {
+          const specialButton = menu.querySelector(".config-menu-special");
+          const cancelButton = menu.querySelector(".config-menu-cancel");
+          if (specialButton && config.special) {
+            specialButton.addEventListener("click", () => {
+              menu.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+                input.checked = false;
+                input
+                  .closest(".config-menu-check")
+                  ?.classList.remove("selected");
+              });
+              specialButton.classList.add("selected");
+              if (valueText) {
+                valueText.textContent = config.special.value;
+              }
+              const otherIndex = index === 1 ? 2 : index === 2 ? 1 : null;
+              if (otherIndex !== null) {
+                restoreMultiMenu(otherIndex);
+              }
+            });
+          }
+          if (cancelButton) {
+            cancelButton.addEventListener("click", () => {
+              const state = configMenuState.get(index);
+              if (state?.snapshot) {
+                applyMultiSnapshot(state, state.snapshot);
+                const otherIndex = index === 1 ? 2 : index === 2 ? 1 : null;
+                if (otherIndex !== null) {
+                  if (state.snapshot.checked && state.snapshot.checked.length) {
+                    resetMultiMenu(otherIndex);
+                  } else {
+                    restoreMultiMenu(otherIndex);
+                  }
+                }
+              }
+              menu.classList.remove("open");
+            });
+          }
+          menu.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+            input.addEventListener("change", () => {
+              input
+                .closest(".config-menu-check")
+                ?.classList.toggle("selected", input.checked);
+              specialButton?.classList.remove("selected");
+              syncMultiDisplay();
+              const state = configMenuState.get(index);
+              if (state) {
+                const snapshot = getMultiSnapshot(menu, config, valueText);
+                if (snapshot.checked && snapshot.checked.length) {
+                  state.lastActiveSnapshot = snapshot;
+                }
+              }
+              const otherIndex = index === 1 ? 2 : index === 2 ? 1 : null;
+              if (otherIndex !== null) {
+                resetMultiMenu(otherIndex);
+              }
+            });
+          });
+        }
+      });
+      const actionButtons = document.querySelectorAll(
+        ".filter-actions .action-button"
+      );
+      const applyAllMenusButton = actionButtons[0];
+      const resetAllMenusButton = actionButtons[1];
+      const saveAppliedState = () => {
+        configMenuState.forEach((state, index) => {
+          if (!state) {
+            return;
+          }
+          const snapshot =
+            state.config.type === "multi"
+              ? getMultiSnapshot(state.menu, state.config, state.valueText)
+              : null;
+          configAppliedState[index] = {
+            text: state.valueText?.textContent || "",
+            snapshot,
+          };
+          if (snapshot && snapshot.checked && snapshot.checked.length) {
+            state.lastActiveSnapshot = snapshot;
+          }
+        });
+      };
+      const getMenuText = (index) => {
+        const state = configMenuState.get(index);
+        return state?.valueText?.textContent?.trim() || "";
+      };
+
+      const getMenuValues = (index) => {
+        const state = configMenuState.get(index);
+        if (!state || state.config.type !== "multi") {
+          return [];
+        }
+        const snapshot = getMultiSnapshot(state.menu, state.config, state.valueText);
+        if (snapshot.specialSelected) {
+          return [];
+        }
+        return snapshot.checked.filter(Boolean);
+      };
+
+      if (applyAllMenusButton) {
+        applyAllMenusButton.addEventListener("click", async () => {
+          const enabledText = getMenuText(0).toLowerCase();
+          const enabled =
+            enabledText === "enabled" || enabledText === "yes" || enabledText === "true";
+          const exclude = getMenuValues(1);
+          const include = getMenuValues(2);
+          const countText = getMenuText(3).toLowerCase();
+          const keepOnly =
+            !countText || countText === "no limit" ? null : Number.parseInt(countText, 10);
+          const preferText = getMenuText(4).toLowerCase();
+          const prefer = !preferText || preferText === "any" ? null : preferText;
+
+          const payload = {
+            enabled,
+            exclude_media_formats: exclude,
+            include_media_formats: include,
+            keep_only_media_count: Number.isFinite(keepOnly) ? keepOnly : null,
+            prefer,
+          };
+          try {
+            const headers = { "Content-Type": "application/json" };
+            if (invalidateApiKey) {
+              headers.Authorization = invalidateApiKey;
+            }
+            const response = await fetch("/config/release-filter", {
+              method: "POST",
+              headers,
+              body: JSON.stringify(payload),
+            });
+            if (!response.ok) {
+              const text = await response.text();
+              suppressHover();
+              alert(`Error (${response.status}): ${text}`);
+              return;
+            }
+            saveAppliedState();
+            suppressHover();
+            alert("Filter settings applied.");
+          } catch (error) {
+            suppressHover();
+            alert(`Request failed: ${error}`);
+          }
+        });
+      }
+      if (resetAllMenusButton) {
+        resetAllMenusButton.addEventListener("click", () => {
+          configMenuState.forEach((state, index) => {
+            const applied = configAppliedState[index];
+            if (!state || !applied) {
+              return;
+            }
+            if (state.config.type === "single") {
+              const value = applied.text.trim().toLowerCase();
+              if (state.valueText) {
+                state.valueText.textContent = applied.text;
+              }
+              state.menu.querySelectorAll("button").forEach((item) => {
+                item.classList.toggle(
+                  "selected",
+                  item.dataset.value?.toLowerCase() === value
+                );
+              });
+            }
+            if (state.config.type === "multi" && applied.snapshot) {
+              applyMultiSnapshot(state, applied.snapshot);
+              state.lastActiveSnapshot = applied.snapshot;
+            }
+          });
+        });
+      }
+      document.addEventListener("click", () => {
+        document.querySelectorAll(".config-menu.open").forEach((menu) => {
+          menu.classList.remove("open");
+        });
+      });
+
+      const syncActionButtonWidth = () => {
+        const probe = document.createElement("span");
+        probe.className = "refresh-button__inner";
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        probe.style.pointerEvents = "none";
+        probe.style.whiteSpace = "nowrap";
+        probe.textContent = "REFRESH";
+        document.body.appendChild(probe);
+        const width = Math.ceil(probe.getBoundingClientRect().width);
+        document.body.removeChild(probe);
+        if (width) {
+          document.documentElement.style.setProperty(
+            "--action-button-width",
+            `${width}px`
+          );
+        }
+      };
+      const scheduleActionButtonSync = () => {
+        requestAnimationFrame(syncActionButtonWidth);
+      };
+      scheduleActionButtonSync();
+      window.addEventListener("load", scheduleActionButtonSync);
+      window.addEventListener("resize", scheduleActionButtonSync);
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(scheduleActionButtonSync).catch(() => {});
       }
 
       const themeToggle = document.querySelector("[data-theme-toggle]");

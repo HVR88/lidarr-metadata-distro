@@ -40,6 +40,7 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
         private readonly Logger _logger;
         private readonly string _autoEnableMarkerPath;
         private string? _lastReleaseFilterPayload;
+        private bool _releaseFilterLoadedFromBridge;
 
         public MetadataSourceOverrideUpdater(IMetadataRepository metadataRepository,
                                              IConfigService configService,
@@ -143,6 +144,11 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             EnsureDefaultUrl(definition);
             EnsureDefaultEnabled(definition);
 
+            if (definition is MetadataDefinition metadataDefinition)
+            {
+                TryLoadReleaseFilterConfig(metadataDefinition, settings);
+            }
+
             var url = settings.MetadataSource?.Trim();
             var canApply = definition.Enable && url.IsNotNullOrWhiteSpace();
 
@@ -166,6 +172,45 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
 
             SyncReleaseFilterConfig(definition, settings, logEvenIfUnchanged);
             HandleForceRescan(definition, settings);
+        }
+
+        private void TryLoadReleaseFilterConfig(MetadataDefinition metadataDefinition, MetadataSourceOverrideSettings settings)
+        {
+            if (_releaseFilterLoadedFromBridge)
+            {
+                return;
+            }
+
+            var baseUrl = settings.MetadataSource?.Trim();
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                return;
+            }
+
+            var url = baseUrl.TrimEnd('/') + "/config/release-filter";
+            try
+            {
+                var request = new HttpRequestBuilder(url).Get().Build();
+                var response = _httpClient.Get<ReleaseFilterConfigResponse>(request);
+                var config = response.Resource;
+                if (config == null)
+                {
+                    return;
+                }
+
+                var changed = ApplyReleaseFilterSettings(settings, config);
+                _releaseFilterLoadedFromBridge = true;
+
+                if (changed)
+                {
+                    _metadataRepository.Update(metadataDefinition);
+                    _logger.Info("Loaded release filter settings from LM-Bridge.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Warn(ex, "Failed to load release filter config from LM-Bridge.");
+            }
         }
 
         private void HandleForceRescan(ProviderDefinition definition, MetadataSourceOverrideSettings settings)
@@ -303,8 +348,13 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             {
                 excludeTokens = Array.Empty<string>();
             }
-            var keepOnlyMediaCount = Math.Clamp(settings.KeepOnlyMediaCount.GetValueOrDefault(), 0, 999);
-            var prefer = settings.Prefer == (int)MediaPreferOption.Analog ? "analog" : "digital";
+            var keepOnlyMediaCount = Math.Clamp(settings.KeepOnlyMediaCount.GetValueOrDefault(), 0, 20);
+            string? prefer = settings.Prefer switch
+            {
+                (int)MediaPreferOption.Analog => "analog",
+                (int)MediaPreferOption.Digital => "digital",
+                _ => null
+            };
             var pluginVersion = typeof(MetadataSourceOverrideUpdater).Assembly
                 .GetName()
                 .Version?
@@ -366,6 +416,90 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
                 .ToArray();
         }
 
+        private bool ApplyReleaseFilterSettings(MetadataSourceOverrideSettings settings, ReleaseFilterConfigResponse config)
+        {
+            if (settings == null || config == null)
+            {
+                return false;
+            }
+
+            var excludeTokens = NormalizeTokens(config.ExcludeMediaFormats);
+            var includeTokens = NormalizeTokens(config.IncludeMediaFormats);
+            if (includeTokens.Length > 0)
+            {
+                excludeTokens = Array.Empty<string>();
+            }
+
+            var keepOnlyMediaCount = Math.Clamp(config.KeepOnlyMediaCount.GetValueOrDefault(), 0, 20);
+            if (!config.Enabled)
+            {
+                excludeTokens = Array.Empty<string>();
+                includeTokens = Array.Empty<string>();
+                keepOnlyMediaCount = 0;
+            }
+
+            var prefer = ResolvePreferValue(config.Prefer, settings.Prefer);
+
+            var changed = false;
+            if (!TokensEqual(settings.ExcludeMediaFormats, excludeTokens))
+            {
+                settings.ExcludeMediaFormats = excludeTokens;
+                changed = true;
+            }
+
+            if (!TokensEqual(settings.KeepOnlyFormats, includeTokens))
+            {
+                settings.KeepOnlyFormats = includeTokens;
+                changed = true;
+            }
+
+            if (settings.KeepOnlyMediaCount.GetValueOrDefault() != keepOnlyMediaCount)
+            {
+                settings.KeepOnlyMediaCount = keepOnlyMediaCount;
+                changed = true;
+            }
+
+            if (settings.Prefer != prefer)
+            {
+                settings.Prefer = prefer;
+                changed = true;
+            }
+
+            return changed;
+        }
+
+        private static bool TokensEqual(IEnumerable<string> left, IEnumerable<string> right)
+        {
+            var leftTokens = NormalizeTokens(left).OrderBy(token => token, StringComparer.Ordinal).ToArray();
+            var rightTokens = NormalizeTokens(right).OrderBy(token => token, StringComparer.Ordinal).ToArray();
+            return leftTokens.SequenceEqual(rightTokens, StringComparer.Ordinal);
+        }
+
+        private static int ResolvePreferValue(string? prefer, int fallback)
+        {
+            if (string.IsNullOrWhiteSpace(prefer))
+            {
+                return (int)MediaPreferOption.Any;
+            }
+
+            if (string.Equals(prefer, "analog", StringComparison.OrdinalIgnoreCase))
+            {
+                return (int)MediaPreferOption.Analog;
+            }
+
+            if (string.Equals(prefer, "digital", StringComparison.OrdinalIgnoreCase))
+            {
+                return (int)MediaPreferOption.Digital;
+            }
+
+            if (string.Equals(prefer, "any", StringComparison.OrdinalIgnoreCase))
+            {
+                return (int)MediaPreferOption.Any;
+            }
+
+            return fallback;
+        }
+
         private class ReleaseFilterPayload
         {
             public bool Enabled { get; set; }
@@ -380,6 +514,15 @@ namespace LMBridgePlugin.Metadata.MetadataSourceOverride
             public int? LidarrPort { get; set; }
             public bool? LidarrUseSsl { get; set; }
             public string? LidarrUrlBase { get; set; }
+        }
+
+        private class ReleaseFilterConfigResponse
+        {
+            public bool Enabled { get; set; }
+            public IEnumerable<string> ExcludeMediaFormats { get; set; } = Array.Empty<string>();
+            public IEnumerable<string> IncludeMediaFormats { get; set; } = Array.Empty<string>();
+            public int? KeepOnlyMediaCount { get; set; }
+            public string? Prefer { get; set; }
         }
 
         private string ResolveLidarrBaseUrl()
