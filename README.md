@@ -19,7 +19,8 @@ and contains the LM-Bridge container plus related tooling.
 >
 > **_For the premade Docker container: https://github.com/HVR88/LM-Bridge_**
 >
-> **Plugin status**: The Lidarr plugin has been removed from this repo and now lives at `/Users/Bruno/Documents/Code_Dev/lidarr/lm-bridge-plugin`. References here are historical; this repo no longer builds or publishes the plugin.
+> **Plugin status**:
+> References here are historical; this repo no longer builds or publishes a plugin.
 
 Deploy-only files live in `deploy/` (`docker-compose.yml`, `compose/`, `.env.example`). You can copy that folder as-is, or run `scripts/export-deploy.sh` to create a bundle or sync it to a separate deploy repo (the export excludes `.env` by default).
 
@@ -41,9 +42,8 @@ Hook documentation is in `hooks_readme.md` (custom DB/MITM transforms that run a
 
 **Requirements**
 
-1. Running Lidarr _plugins-enabled_ branch
+1. Running Lidarr _nightly_ branch
 2. Running MusicBrainz mirror server
-3. The Lidarr plugin is no longer built from this repo
 
 **Key Defaults**
 
