@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>LM Bridge</title>
     <link rel="stylesheet" href="/assets/root.css" />
-
   </head>
   <body>
     <main class="wrap">
@@ -19,49 +18,21 @@
         >
           <span class="corner-button__inner"></span>
         </button>
+        <button
+          class="corner-button"
+          type="button"
+          aria-label="LM Bridge Settings"
+          aria-pressed="false"
+          data-settings-button
+        >
+          <span class="corner-button__inner"></span>
+        </button>
         <div class="hero">
           <img src="__ICON_URL__" alt="LM Bridge" width="500" />
-          <h1 class="hero-title">LM Bridge Metadata Handler</h1>
+          <h1 class="hero-title">LM Bridge</h1>
           <span class="hero-sub"><em>FAST • Local • Private</em></span>
         </div>
 
-        <div class="grid">
-          <div class="__LM_PILL_CLASS__">
-            <div class="label">LM Bridge Version</div>
-            <div class="value">__LM_VERSION__</div>
-__LM_VERSION_BUTTON__
-          </div>
-          <div class="__PLUGIN_PILL_CLASS__">
-            <div class="label">__LM_PLUGIN_LABEL__</div>
-            <div class="value">__LM_PLUGIN_VERSION__</div>
-__PLUGIN_VERSION_BUTTON__
-          </div>
-          <div class="__LIDARR_PILL_CLASS__">
-            <div class="label">__LIDARR_VERSION_LABEL__</div>
-            <div class="value">__LIDARR_VERSION__</div>
-__LIDARR_OPEN__
-          </div>
-          __MBMS_PILLS__
-          <div class="pill">
-            <div class="label">Uptime</div>
-            <div class="value">__UPTIME__</div>
-          </div>
-          <div class="pill">
-            <div class="label">Metadata API Version</div>
-            <div class="value">__METADATA_VERSION__</div>
-          </div>
-          <div class="__REPLICATION_PILL_CLASS__" data-replication-pill>
-            <div class="label">Last Replication</div>
-            <div class="value replication-date" data-replication-value>
-              __REPLICATION_DATE_HTML__
-            </div>
-__REPLICATION_BUTTON__
-          </div>
-        </div>
-        <div class="links">
-          <div class="links-left"></div>
-          <div class="links-right"></div>
-        </div>
         <div class="tabs" data-tabs>
           <div class="tab-buttons">
             <button class="tab-button active" data-tab="filter-details">
@@ -70,7 +41,7 @@ __REPLICATION_BUTTON__
             <button class="tab-button" data-tab="refresh-releases">
               Bulk Refresh
             </button>
-            <button class="tab-button" data-tab="artwork">Art Sources</button>
+            <button class="tab-button" data-tab="artwork">Services</button>
             <button class="tab-button" data-tab="tools">Tools</button>
           </div>
           <div class="tab-panel active" data-tab-panel="filter-details">
@@ -84,8 +55,8 @@ __REPLICATION_BUTTON__
                   <span class="action-button__inner">Reset</span>
                 </button>
                 <div class="tabs-footnote">
-                  * Use the LM Bridge plugin in Lidarr to write free text, which
-                  may be more useful to you
+                  "Release Format" is the type of media a release is issued on:
+                  CD, Vinyl LP, Cassette, etc.
                 </div>
               </div>
             </div>
@@ -97,9 +68,9 @@ __REPLICATION_BUTTON__
                 placeholder="Paste artist or release IDs, MBIDs, Lidarr or MusicBrainz URLs here..."
               ></textarea>
               <div class="actions_box">
-              <button class="action-button" type="button" data-refresh-button>
-                <span class="action-button__inner">Refresh</span>
-              </button>
+                <button class="action-button" type="button" data-refresh-button>
+                  <span class="action-button__inner">Refresh</span>
+                </button>
                 <div class="tabs-footnote">
                   Paste what you want, no special formatting is needed
                 </div>
@@ -140,6 +111,45 @@ __REPLICATION_BUTTON__
             </div>
           </div>
         </div>
+
+        <div class="grid">
+          <div class="__LM_PILL_CLASS__">
+            <div class="label">LM Bridge Version</div>
+            <div class="value">__LM_VERSION__</div>
+            __LM_VERSION_BUTTON__
+          </div>
+          <div class="__PLUGIN_PILL_CLASS__">
+            <div class="label">__LM_PLUGIN_LABEL__</div>
+            <div class="value">__LM_PLUGIN_VERSION__</div>
+            __PLUGIN_VERSION_BUTTON__
+          </div>
+          <div class="__LIDARR_PILL_CLASS__">
+            <div class="label">__LIDARR_VERSION_LABEL__</div>
+            <div class="value">__LIDARR_VERSION__</div>
+            __LIDARR_OPEN__
+          </div>
+          __MBMS_PILLS__
+          <div class="pill">
+            <div class="label">Uptime</div>
+            <div class="value">__UPTIME__</div>
+          </div>
+          <div class="pill">
+            <div class="label">Metadata API Version</div>
+            <div class="value">__METADATA_VERSION__</div>
+          </div>
+          <div class="__REPLICATION_PILL_CLASS__" data-replication-pill>
+            <div class="label">Last Replication</div>
+            <div class="value replication-date" data-replication-value>
+              __REPLICATION_DATE_HTML__
+            </div>
+            __REPLICATION_BUTTON__
+          </div>
+        </div>
+        <div class="links">
+          <div class="links-left"></div>
+          <div class="links-right"></div>
+        </div>
+
         <div class="foot">
           Tip: Use
           <a class="accent" href="album/9d148b20-c055-4f0d-9020-ae5c9ae08466"
@@ -156,6 +166,28 @@ __REPLICATION_BUTTON__
         </div>
       </section>
     </main>
+    <div class="settings-modal" data-settings-modal aria-hidden="true">
+      <div class="settings-modal__backdrop" data-settings-backdrop></div>
+      <div
+        class="settings-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="LM Bridge Settings"
+      >
+        <button
+          class="settings-modal__close"
+          type="button"
+          aria-label="Close settings"
+          data-settings-close
+        >
+          <span class="settings-modal__close-inner"></span>
+        </button>
+        <div class="settings-modal__content">
+          <h2 class="settings-modal__title">Settings</h2>
+          <p class="settings-modal__subtitle">Configure LM Bridge options.</p>
+        </div>
+      </div>
+    </div>
     <script>
       const cacheButtons = document.querySelectorAll("[data-cache-action]");
       const invalidateApiKey = "__INVALIDATE_APIKEY__";
@@ -178,7 +210,8 @@ __REPLICATION_BUTTON__
         }
         if (
           action === "clear" &&
-          (suppressHover(), !confirm("Clear all cache tables? This cannot be undone."))
+          (suppressHover(),
+          !confirm("Clear all cache tables? This cannot be undone."))
         ) {
           suppressHover();
           return;
@@ -199,7 +232,7 @@ __REPLICATION_BUTTON__
           suppressHover();
           alert(`OK: ${text}`);
         } catch (error) {
-            suppressHover();
+          suppressHover();
           alert(`Request failed: ${error}`);
         } finally {
           button.disabled = false;
@@ -210,9 +243,13 @@ __REPLICATION_BUTTON__
         button.addEventListener("click", () => runCacheAction(button));
       });
 
-      const replicationButton = document.querySelector("[data-replication-url]");
+      const replicationButton = document.querySelector(
+        "[data-replication-url]",
+      );
       const replicationPill = document.querySelector("[data-replication-pill]");
-      const replicationValue = document.querySelector("[data-replication-value]");
+      const replicationValue = document.querySelector(
+        "[data-replication-value]",
+      );
       let replicationPollTimer = null;
 
       const setReplicationState = (running, started) => {
@@ -399,7 +436,7 @@ __REPLICATION_BUTTON__
 
         const syncTabMinHeight = () => {
           const firstPanel = tabRoot.querySelector(
-            '[data-tab-panel="filter-details"]'
+            '[data-tab-panel="filter-details"]',
           );
           if (!firstPanel) {
             return;
@@ -435,7 +472,7 @@ __REPLICATION_BUTTON__
         };
         tabButtons.forEach((button) => {
           button.addEventListener("click", () =>
-            setActiveTab(button.dataset.tab)
+            setActiveTab(button.dataset.tab),
           );
         });
 
@@ -502,7 +539,7 @@ __REPLICATION_BUTTON__
               alert(
                 payload.error
                   ? `Error: ${payload.error}`
-                  : `Error (${response.status})`
+                  : `Error (${response.status})`,
               );
               return;
             }
@@ -513,7 +550,7 @@ __REPLICATION_BUTTON__
             alert(
               `Queued ${queued} refresh request(s).` +
                 (missing ? ` Missing MBIDs: ${missing}.` : "") +
-                (errors ? ` Errors: ${errors}.` : "")
+                (errors ? ` Errors: ${errors}.` : ""),
             );
           } catch (error) {
             suppressHover();
@@ -632,7 +669,7 @@ __REPLICATION_BUTTON__
       };
 
       const configButtons = Array.from(
-        document.querySelectorAll("[data-config-menu]")
+        document.querySelectorAll("[data-config-menu]"),
       );
       const configMenuState = new Map();
       const configInitialState = [];
@@ -670,7 +707,7 @@ __REPLICATION_BUTTON__
 
       const getMultiSnapshot = (menu, config, valueText) => {
         const checked = Array.from(
-          menu.querySelectorAll('input[type="checkbox"]:checked')
+          menu.querySelectorAll('input[type="checkbox"]:checked'),
         ).map((input) => input.dataset.value || "");
         const specialButton = menu.querySelector(".config-menu-special");
         const specialSelected =
@@ -736,7 +773,7 @@ __REPLICATION_BUTTON__
           menu.querySelectorAll("button").forEach((item) => {
             item.classList.toggle(
               "selected",
-              item.dataset.value?.toLowerCase() === value
+              item.dataset.value?.toLowerCase() === value,
             );
           });
         };
@@ -746,7 +783,7 @@ __REPLICATION_BUTTON__
             return;
           }
           const checked = Array.from(
-            menu.querySelectorAll('input[type="checkbox"]:checked')
+            menu.querySelectorAll('input[type="checkbox"]:checked'),
           ).map((input) => input.dataset.value || "");
           if (!checked.length && config.special) {
             valueText.textContent = config.special.value;
@@ -769,16 +806,17 @@ __REPLICATION_BUTTON__
                 .querySelector(".config-menu-special")
                 ?.classList.add("selected");
             } else {
-              menu.querySelectorAll('input[type="checkbox"]').forEach((input) => {
-                const checked = tokens.includes(
-                  (input.dataset.value || "").toLowerCase()
-                );
-                input.checked = checked;
-                input.closest(".config-menu-check")?.classList.toggle(
-                  "selected",
-                  checked
-                );
-              });
+              menu
+                .querySelectorAll('input[type="checkbox"]')
+                .forEach((input) => {
+                  const checked = tokens.includes(
+                    (input.dataset.value || "").toLowerCase(),
+                  );
+                  input.checked = checked;
+                  input
+                    .closest(".config-menu-check")
+                    ?.classList.toggle("selected", checked);
+                });
               if (tokens.length) {
                 configMenuState.get(index).lastActiveSnapshot = {
                   checked: tokens,
@@ -822,12 +860,14 @@ __REPLICATION_BUTTON__
           const cancelButton = menu.querySelector(".config-menu-cancel");
           if (specialButton && config.special) {
             specialButton.addEventListener("click", () => {
-              menu.querySelectorAll('input[type="checkbox"]').forEach((input) => {
-                input.checked = false;
-                input
-                  .closest(".config-menu-check")
-                  ?.classList.remove("selected");
-              });
+              menu
+                .querySelectorAll('input[type="checkbox"]')
+                .forEach((input) => {
+                  input.checked = false;
+                  input
+                    .closest(".config-menu-check")
+                    ?.classList.remove("selected");
+                });
               specialButton.classList.add("selected");
               if (valueText) {
                 valueText.textContent = config.special.value;
@@ -878,7 +918,7 @@ __REPLICATION_BUTTON__
         }
       });
       const actionButtons = document.querySelectorAll(
-        ".actions_box .action-button"
+        ".actions_box .action-button",
       );
       const applyAllMenusButton = actionButtons[0];
       const resetAllMenusButton = actionButtons[1];
@@ -910,7 +950,11 @@ __REPLICATION_BUTTON__
         if (!state || state.config.type !== "multi") {
           return [];
         }
-        const snapshot = getMultiSnapshot(state.menu, state.config, state.valueText);
+        const snapshot = getMultiSnapshot(
+          state.menu,
+          state.config,
+          state.valueText,
+        );
         if (snapshot.specialSelected) {
           return [];
         }
@@ -921,19 +965,19 @@ __REPLICATION_BUTTON__
         applyAllMenusButton.addEventListener("click", async () => {
           const enabledText = getMenuText(0).toLowerCase();
           const enabled =
-            enabledText === "enabled" || enabledText === "yes" || enabledText === "true";
+            enabledText === "enabled" ||
+            enabledText === "yes" ||
+            enabledText === "true";
           const exclude = getMenuValues(1);
           const include = getMenuValues(2);
           const countText = getMenuText(3).toLowerCase();
           const keepOnly =
-            !countText || countText === "no limit" ? null : Number.parseInt(countText, 10);
+            !countText || countText === "no limit"
+              ? null
+              : Number.parseInt(countText, 10);
           const preferText = getMenuText(4).toLowerCase();
           const preferValue =
-            preferText === "digital"
-              ? 0
-              : preferText === "analog"
-                ? 1
-                : 2;
+            preferText === "digital" ? 0 : preferText === "analog" ? 1 : 2;
           const prefer =
             preferValue === 0 ? "digital" : preferValue === 1 ? "analog" : null;
 
@@ -985,7 +1029,7 @@ __REPLICATION_BUTTON__
               state.menu.querySelectorAll("button").forEach((item) => {
                 item.classList.toggle(
                   "selected",
-                  item.dataset.value?.toLowerCase() === value
+                  item.dataset.value?.toLowerCase() === value,
                 );
               });
             }
@@ -1016,7 +1060,7 @@ __REPLICATION_BUTTON__
         if (width) {
           document.documentElement.style.setProperty(
             "--action-button-width",
-            `${width}px`
+            `${width}px`,
           );
         }
       };
@@ -1032,7 +1076,7 @@ __REPLICATION_BUTTON__
 
       const syncRefreshInputHeight = () => {
         const filterBox = document.querySelector(
-          '[data-tab-panel="filter-details"] .filters_box'
+          '[data-tab-panel="filter-details"] .filters_box',
         );
         const refreshInput = document.querySelector(".refresh-input");
         if (!filterBox || !refreshInput) {
@@ -1047,7 +1091,7 @@ __REPLICATION_BUTTON__
       syncRefreshInputHeight();
       if (window.ResizeObserver) {
         const filterBox = document.querySelector(
-          '[data-tab-panel="filter-details"] .filters_box'
+          '[data-tab-panel="filter-details"] .filters_box',
         );
         if (filterBox) {
           const observer = new ResizeObserver(() => {
@@ -1069,7 +1113,7 @@ __REPLICATION_BUTTON__
         if (themeToggle) {
           themeToggle.setAttribute(
             "aria-pressed",
-            theme === "dark" ? "true" : "false"
+            theme === "dark" ? "true" : "false",
           );
         }
       };
@@ -1101,6 +1145,53 @@ __REPLICATION_BUTTON__
           }).catch(() => {});
         });
       }
+
+      const settingsButton = document.querySelector("[data-settings-button]");
+      const settingsModal = document.querySelector("[data-settings-modal]");
+      const settingsClose = document.querySelector("[data-settings-close]");
+      const settingsBackdrop = document.querySelector(
+        "[data-settings-backdrop]",
+      );
+      const settingsPanel = settingsModal?.querySelector(
+        ".settings-modal__panel",
+      );
+
+      const openSettings = () => {
+        if (!settingsModal) {
+          return;
+        }
+        settingsModal.classList.add("open");
+        settingsModal.setAttribute("aria-hidden", "false");
+      };
+      const closeSettings = () => {
+        if (!settingsModal) {
+          return;
+        }
+        settingsModal.classList.remove("open");
+        settingsModal.setAttribute("aria-hidden", "true");
+      };
+
+      if (settingsButton) {
+        settingsButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          openSettings();
+        });
+      }
+      if (settingsClose) {
+        settingsClose.addEventListener("click", closeSettings);
+      }
+      if (settingsBackdrop) {
+        settingsBackdrop.addEventListener("click", closeSettings);
+      }
+      document.addEventListener("click", (event) => {
+        if (!settingsModal || !settingsModal.classList.contains("open")) {
+          return;
+        }
+        if (settingsPanel && settingsPanel.contains(event.target)) {
+          return;
+        }
+        closeSettings();
+      });
     </script>
   </body>
 </html>

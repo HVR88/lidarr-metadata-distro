@@ -112,7 +112,7 @@ body {
   height: auto;
 }
 .hero-title {
-  margin: 12px 0 6px 0;
+  margin: 0 0 6px 0;
   font-size: clamp(26px, 4vw, 40px);
   letter-spacing: -0.02em;
 }
@@ -184,8 +184,11 @@ body {
   cursor: pointer;
   z-index: 3;
 }
+.corner-button[data-theme-toggle] {
+  right: calc(18px + var(--action-button-size) + 10px);
+}
 .corner-button__inner {
-  width: 125%;
+  width: 100%;
   height: 100%;
   border-radius: 999px;
   border: 1px solid var(--border);
@@ -223,6 +226,88 @@ body[data-theme="dark"] .action-button__inner {
 }
 body[data-theme="dark"] .config-action__inner {
   color: #c2cdd4;
+}
+.settings-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+.settings-modal.open {
+  display: flex;
+}
+.settings-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 18, 22, 0.45);
+  backdrop-filter: blur(8px);
+}
+.settings-modal__panel {
+  position: relative;
+  width: min(50vw, 400px);
+  height: min(50vh, 280px);
+  min-width: 320px;
+  min-height: 260px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 26px 60px rgba(7, 12, 14, 0.45);
+  padding: 24px 28px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.settings-modal__close {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+.settings-modal__close-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--soft-shadow);
+  position: relative;
+}
+.settings-modal__close-inner::before,
+.settings-modal__close-inner::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 2px;
+  background: currentColor;
+  color: var(--muted);
+}
+.settings-modal__close-inner::before {
+  transform: rotate(45deg);
+}
+.settings-modal__close-inner::after {
+  transform: rotate(-45deg);
+}
+.settings-modal__title {
+  margin: 24px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.settings-modal__subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
 }
 body[data-theme="dark"] .pill-button.update .pill-button__inner,
 body[data-theme="dark"] .pill-button.danger .pill-button__inner {
@@ -346,7 +431,7 @@ body[data-theme="dark"] .corner-button__inner {
   margin-left: auto;
 }
 .tabs {
-  margin: 20px 0 0;
+  margin: 20px 0 30px;
   border: 1px solid var(--border);
   background: var(--panel);
   border-radius: 12px;
@@ -541,6 +626,9 @@ body[data-theme="dark"] .corner-button__inner {
 }
 .config-value-text {
   text-align: right;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
 }
 .config-action {
   border: 0;
@@ -585,8 +673,8 @@ body[data-theme="dark"] .corner-button__inner {
 }
 .config-menu {
   position: absolute;
-  right: calc(100% + 8px);
-  bottom: 0;
+  right: -10px;
+  bottom: -10px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 10px;

@@ -9,15 +9,17 @@ from pathlib import Path
 
 def build_preview_html() -> str:
     root = Path(__file__).resolve().parents[1]
-    template_path = root / "overlay" / "bridge" / "lidarrmetadata" / "assets" / "root.html"
+    template_path = (
+        root / "overlay" / "bridge" / "lidarrmetadata" / "assets" / "root.html"
+    )
     template = template_path.read_text(encoding="utf-8")
     template = template.replace('href="/assets/root.css"', 'href="assets/root.css"')
 
     config_html = "\n".join(
         [
             '          <div class="config-row"><div class="config-label">Filtering Enabled</div><div class="config-value"><span class="config-value-text">Yes</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
-            '          <div class="config-row"><div class="config-label">Exclude Media Formats *</div><div class="config-value"><span class="config-value-text">vinyl, cassette</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
-            '          <div class="config-row"><div class="config-label">Include Media Formats *</div><div class="config-value"><span class="config-value-text">all</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
+            '          <div class="config-row"><div class="config-label">Exclude Media Formats</div><div class="config-value"><span class="config-value-text">vinyl, cassette</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
+            '          <div class="config-row"><div class="config-label">Include Media Formats</div><div class="config-value"><span class="config-value-text">all</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
             '          <div class="config-row"><div class="config-label">Max Media Count</div><div class="config-value"><span class="config-value-text">no limit</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
             '          <div class="config-row"><div class="config-label">Prefer Media Type</div><div class="config-value"><span class="config-value-text">digital</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
         ]
@@ -96,9 +98,17 @@ def main() -> int:
     default_output = root / "dist" / "root-preview.html"
     css_source = root / "overlay" / "bridge" / "lidarrmetadata" / "assets" / "root.css"
 
-    parser = argparse.ArgumentParser(description="Generate a local preview of the LM Bridge landing page.")
-    parser.add_argument("output", nargs="?", default=str(default_output), help="Output HTML path")
-    parser.add_argument("--open", action="store_true", help="Open the generated file (macOS: uses 'open').")
+    parser = argparse.ArgumentParser(
+        description="Generate a local preview of the LM Bridge landing page."
+    )
+    parser.add_argument(
+        "output", nargs="?", default=str(default_output), help="Output HTML path"
+    )
+    parser.add_argument(
+        "--open",
+        action="store_true",
+        help="Open the generated file (macOS: uses 'open').",
+    )
     args = parser.parse_args()
 
     output_path = Path(args.output).expanduser().resolve()

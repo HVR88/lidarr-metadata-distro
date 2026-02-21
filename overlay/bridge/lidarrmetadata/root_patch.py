@@ -159,6 +159,7 @@ def get_lidarr_client_ip() -> str:
 
 def _cache_targets() -> Iterable[Tuple[str, object]]:
     from lidarrmetadata import util
+
     return (
         ("artist", util.ARTIST_CACHE),
         ("album", util.ALBUM_CACHE),
@@ -270,9 +271,7 @@ def _format_schedule_html(value: Optional[str]) -> str:
         minute = match.group(2)
         ampm = (match.group(3) or ("AM" if hour < 12 else "PM")).upper()
         hour12 = hour % 12 or 12
-        parts.append(
-            f'{hour12}:{minute}&nbsp;<span class="ampm">{ampm}</span>'
-        )
+        parts.append(f'{hour12}:{minute}&nbsp;<span class="ampm">{ampm}</span>')
         last = match.end()
     parts.append(html.escape(text[last:]))
     return "".join(parts)
@@ -381,7 +380,9 @@ def _replication_auth_config(app_config: dict) -> Tuple[str, str]:
     return header, key
 
 
-async def _fetch_replication_status_remote(status_url: str, header_pair: str) -> Optional[dict]:
+async def _fetch_replication_status_remote(
+    status_url: str, header_pair: str
+) -> Optional[dict]:
     headers = {}
     if header_pair and ":" in header_pair:
         name, value = header_pair.split(":", 1)
@@ -416,6 +417,7 @@ async def _fetch_lidarr_version(base_url: str, api_key: str) -> Optional[str]:
         if value:
             return str(value).strip()
     return None
+
 
 def _env_first(*names: str) -> Optional[str]:
     for name in names:
@@ -487,6 +489,7 @@ def _format_index_schedule() -> Optional[str]:
         return " ".join(parts)
 
     return None
+
 
 def _read_last_lidarr_version() -> Optional[str]:
     global _LAST_LIDARR_VERSION
@@ -627,7 +630,9 @@ def register_root_route() -> None:
                 and request.headers.get("authorization") != auth_key
             ):
                 return jsonify("Unauthorized"), 401
-            use_remote, start_url, _status_url, header_pair = _replication_remote_config()
+            use_remote, start_url, _status_url, header_pair = (
+                _replication_remote_config()
+            )
             upstream_app.app.logger.info(
                 "Replication start requested (remote=%s, url=%s)",
                 "true" if use_remote else "false",
@@ -644,7 +649,10 @@ def register_root_route() -> None:
                         async with session.post(start_url, headers=headers) as resp:
                             data = await resp.text()
                             if resp.status >= 400:
-                                return jsonify({"ok": False, "error": data}), resp.status
+                                return (
+                                    jsonify({"ok": False, "error": data}),
+                                    resp.status,
+                                )
                             return jsonify({"ok": True, "remote": True})
                 except Exception as exc:
                     return jsonify({"ok": False, "error": str(exc)}), 500
@@ -658,9 +666,17 @@ def register_root_route() -> None:
                 if candidate.exists():
                     script = candidate
             if not script.exists():
-                return jsonify({"ok": False, "error": "Replication script not found."}), 404
+                return (
+                    jsonify({"ok": False, "error": "Replication script not found."}),
+                    404,
+                )
             if not script.is_file():
-                return jsonify({"ok": False, "error": "Replication script is not a file."}), 400
+                return (
+                    jsonify(
+                        {"ok": False, "error": "Replication script is not a file."}
+                    ),
+                    400,
+                )
 
             try:
                 subprocess.Popen(["/bin/bash", str(script)], cwd=str(script.parent))
@@ -676,7 +692,9 @@ def register_root_route() -> None:
 
         @upstream_app.app.route("/replication/status", methods=["GET"])
         async def _lmbridge_replication_status():
-            use_remote, _start_url, status_url, header_pair = _replication_remote_config()
+            use_remote, _start_url, status_url, header_pair = (
+                _replication_remote_config()
+            )
             if use_remote:
                 data = await _fetch_replication_status_remote(status_url, header_pair)
                 if data is not None:
@@ -755,7 +773,9 @@ def register_root_route() -> None:
         lidarr_base_url = get_lidarr_base_url()
         lidarr_api_key = get_lidarr_api_key()
         if lidarr_base_url and lidarr_api_key:
-            fetched_version = await _fetch_lidarr_version(lidarr_base_url, lidarr_api_key)
+            fetched_version = await _fetch_lidarr_version(
+                lidarr_base_url, lidarr_api_key
+            )
             if fetched_version:
                 lidarr_version_label = "Lidarr Version"
                 lidarr_version = fetched_version
@@ -826,6 +846,7 @@ def register_root_route() -> None:
         )
         lm_repo_url = "https://github.com/HVR88/LM-Bridge"
         mbms_url = "https://github.com/HVR88/MBMS_PLUS"
+
         def fmt_config_value(value: object, *, empty_label: str = "none") -> str:
             if value is None:
                 return empty_label
@@ -838,33 +859,38 @@ def register_root_route() -> None:
             text = str(value).strip()
             return text if text else empty_label
 
-        media_formats_url = "https://github.com/HVR88/Docs-Extras/blob/master/docs/Media-Formats.md"
-        exclude_label = (
-            'Exclude <a class="config-link" href="{}" target="_blank" rel="noopener">Media Formats</a> *'.format(
-                html.escape(media_formats_url)
-            )
+        media_formats_url = (
+            "https://github.com/HVR88/Docs-Extras/blob/master/docs/Media-Formats.md"
         )
-        include_label = (
-            'Include <a class="config-link" href="{}" target="_blank" rel="noopener">Media Formats</a> *'.format(
-                html.escape(media_formats_url)
-            )
+        exclude_label = 'Exclude <a class="config-link" href="{}" target="_blank" rel="noopener">Media Formats</a>'.format(
+            html.escape(media_formats_url)
+        )
+        include_label = 'Include <a class="config-link" href="{}" target="_blank" rel="noopener">Media Formats</a>'.format(
+            html.escape(media_formats_url)
         )
         config_rows = [
-            ("Filtering Enabled", fmt_config_value(config.get("enabled"))),
+            (
+                "Filter by Release Format",
+                fmt_config_value(config.get("enabled")),
+            ),
             (
                 exclude_label,
                 fmt_config_value(config.get("exclude_media_formats")),
             ),
             (
                 include_label,
-                fmt_config_value(config.get("include_media_formats"), empty_label="all"),
+                fmt_config_value(
+                    config.get("include_media_formats"), empty_label="all"
+                ),
             ),
             (
-                "Max Media Count",
-                fmt_config_value(config.get("keep_only_media_count"), empty_label="no limit"),
+                "Maximum Number of Release Formats",
+                fmt_config_value(
+                    config.get("keep_only_media_count"), empty_label="no limit"
+                ),
             ),
             (
-                "Prefer Media Type",
+                "Prefered Release Format (when setting Max)",
                 fmt_config_value(config.get("prefer"), empty_label="any"),
             ),
         ]
@@ -889,7 +915,9 @@ def register_root_route() -> None:
         replication_running = False
         replication_started = ""
         if use_remote:
-            status_data = await _fetch_replication_status_remote(status_url, header_pair)
+            status_data = await _fetch_replication_status_remote(
+                status_url, header_pair
+            )
             if status_data and isinstance(status_data, dict):
                 replication_running = bool(status_data.get("running"))
                 replication_started = str(status_data.get("started") or "")
@@ -900,9 +928,7 @@ def register_root_route() -> None:
             "pill-button danger wide" if replication_running else "pill-button"
         )
         replication_pill_class = (
-            "pill has-action wide-action"
-            if replication_running
-            else "pill has-action"
+            "pill has-action wide-action" if replication_running else "pill has-action"
         )
         replication_button_attrs = []
         if replication_running:
@@ -912,9 +938,7 @@ def register_root_route() -> None:
                 f'data-replication-started="{html.escape(replication_started)}"'
             )
         replication_button_attr_text = (
-            " " + " ".join(replication_button_attrs)
-            if replication_button_attrs
-            else ""
+            " " + " ".join(replication_button_attrs) if replication_button_attrs else ""
         )
         replication_button_html = (
             f'            <button class="{replication_button_class}" type="button" '
