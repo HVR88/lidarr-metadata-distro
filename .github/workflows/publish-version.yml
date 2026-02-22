@@ -257,6 +257,7 @@ jobs:
         if: ${{ inputs.publish_container == 'true' }}
         env:
           RELEASE_VERSION: ${{ steps.bump.outputs.release_version }}
+          GH_TOKEN: ${{ secrets.GH_DEPLOY_LIMBO }}
         run: |
           set -euo pipefail
           if [[ "${{ inputs.channel }}" == "test" ]]; then
