@@ -39,6 +39,29 @@ def main() -> int:
         if cache_db and f"CACHE_CONFIG__{key}__db_name" not in os.environ:
             os.environ[f"CACHE_CONFIG__{key}__db_name"] = cache_db
 
+    # Map provider API keys into upstream provider args (upstream reads PROVIDERS at import time).
+    fanart_key = os.environ.get("FANART_KEY")
+    if fanart_key and "PROVIDERS__FANARTTVPROVIDER__0__0" not in os.environ:
+        os.environ["PROVIDERS__FANARTTVPROVIDER__0__0"] = fanart_key
+
+    tadb_key = os.environ.get("TADB_KEY")
+    if tadb_key and "PROVIDERS__THEAUDIODBPROVIDER__0__0" not in os.environ:
+        os.environ["PROVIDERS__THEAUDIODBPROVIDER__0__0"] = tadb_key
+
+    spotify_id = os.environ.get("SPOTIFY_ID")
+    spotify_secret = os.environ.get("SPOTIFY_SECRET")
+    spotify_redirect = os.environ.get("SPOTIFY_REDIRECT_URL")
+    if spotify_id and "PROVIDERS__SPOTIFYAUTHPROVIDER__1__CLIENT_ID" not in os.environ:
+        os.environ["PROVIDERS__SPOTIFYAUTHPROVIDER__1__CLIENT_ID"] = spotify_id
+    if spotify_secret and "PROVIDERS__SPOTIFYAUTHPROVIDER__1__CLIENT_SECRET" not in os.environ:
+        os.environ["PROVIDERS__SPOTIFYAUTHPROVIDER__1__CLIENT_SECRET"] = spotify_secret
+    if spotify_redirect and "PROVIDERS__SPOTIFYAUTHPROVIDER__1__REDIRECT_URI" not in os.environ:
+        os.environ["PROVIDERS__SPOTIFYAUTHPROVIDER__1__REDIRECT_URI"] = spotify_redirect
+    if spotify_id and "PROVIDERS__SPOTIFYPROVIDER__1__CLIENT_ID" not in os.environ:
+        os.environ["PROVIDERS__SPOTIFYPROVIDER__1__CLIENT_ID"] = spotify_id
+    if spotify_secret and "PROVIDERS__SPOTIFYPROVIDER__1__CLIENT_SECRET" not in os.environ:
+        os.environ["PROVIDERS__SPOTIFYPROVIDER__1__CLIENT_SECRET"] = spotify_secret
+
     # Register overlay config (adds BRIDGE to CONFIGS)
     import lidarrmetadata.bridge_config  # noqa: F401
 
