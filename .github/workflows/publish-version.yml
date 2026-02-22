@@ -241,3 +241,20 @@ jobs:
           sync_sha="$(git rev-parse HEAD)"
           git -C deploy-repo commit -m "Sync deploy from ${GITHUB_REPOSITORY}@${sync_sha}"
           git -C deploy-repo push
+
+      - name: Create deploy zip release
+        if: ${{ inputs.publish_container == 'true' }}
+        env:
+          RELEASE_VERSION: ${{ steps.bump.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          tag="v${RELEASE_VERSION}"
+          zip_name="limbo-deploy-${RELEASE_VERSION}.zip"
+          (cd deploy-repo && zip -r "/tmp/${zip_name}" . -x ".git/*")
+          if gh release view "$tag" -R "${DEPLOY_REPO}" >/dev/null 2>&1; then
+            gh release upload "$tag" "/tmp/${zip_name}" -R "${DEPLOY_REPO}" --clobber
+          else
+            gh release create "$tag" "/tmp/${zip_name}" -R "${DEPLOY_REPO}" \
+              --title "Limbo Deploy ${RELEASE_VERSION}" \
+              --notes "Deploy bundle for Limbo ${RELEASE_VERSION}."
+          fi
