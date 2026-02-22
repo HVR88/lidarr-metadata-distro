@@ -22,7 +22,7 @@ and contains Limbo container plus related tooling.
 > **Plugin status**:
 > References here are historical; this repo no longer builds or publishes a plugin.
 
-Deploy-only files live in `deploy/` (`docker-compose.yml`, `compose/`, `.env.example`). You can copy that folder as-is, or run `scripts/export-deploy.sh` to create a bundle or sync it to a separate deploy repo (the export excludes `.env` by default).
+Deploy-only files live in `deploy/` (`docker-compose.yml`, `compose/`, `example.env`). You can copy that folder as-is, or run `scripts/export-deploy.sh` to create a bundle or sync it to a separate deploy repo (the export excludes `.env` by default).
 
 Hook documentation is in `hooks_readme.md` (custom DB/MITM transforms that run after built-in processing).
 

@@ -23,15 +23,9 @@ rsync -a \
   --exclude=".env" \
   --exclude=".env.*" \
   --exclude=".DS_Store" \
+  --exclude=".github/" \
+  --exclude="compose/" \
   "${DEPLOY_DIR}/" "${stage}/"
-
-mkdir -p "${stage}/License"
-if [[ -f "${ROOT}/LICENSE" ]]; then
-  cp "${ROOT}/LICENSE" "${stage}/License/"
-fi
-if [[ -f "${ROOT}/THIRD_PARTY_NOTICES.md" ]]; then
-  cp "${ROOT}/THIRD_PARTY_NOTICES.md" "${stage}/License/"
-fi
 
 tar -czf "${archive}" -C "${stage}" .
 echo "Wrote ${archive}"
@@ -49,6 +43,8 @@ if [[ -n "${DEPLOY_REPO}" ]]; then
     --exclude=".env" \
     --exclude=".env.*" \
     --exclude=".DS_Store" \
+    --exclude=".github/" \
+    --exclude="compose/" \
     --exclude=".git" \
     "${stage}/" "${DEPLOY_REPO}/"
   echo "Synced deploy/ to ${DEPLOY_REPO}"
