@@ -11,6 +11,10 @@ on:
         description: "Publish Docker container (build/push + deploy sync)"
         required: true
         default: "true"
+      channel:
+        description: "Publish channel (stable|test)"
+        required: true
+        default: "stable"
       version:
         description: "Override version (x.y.z or x.y.z.bb)"
         required: false
@@ -22,6 +26,8 @@ permissions:
 env:
   IMAGE_NAME: espressomatic/limbo
   DEPLOY_REPO: ${{ github.repository_owner }}/Limbo
+  DEPLOY_BRANCH: ${{ inputs.channel == 'test' && 'test' || 'main' }}
+  DOCKER_CHANNEL_TAG: ${{ inputs.channel == 'test' && 'test' || 'latest' }}
 
 jobs:
   publish:
@@ -37,6 +43,10 @@ jobs:
         run: |
           if [[ "${{ inputs.publish_container }}" != "true" ]]; then
             echo "publish_container must be true." >&2
+            exit 1
+          fi
+          if [[ "${{ inputs.channel }}" != "stable" && "${{ inputs.channel }}" != "test" ]]; then
+            echo "channel must be stable or test." >&2
             exit 1
           fi
 
@@ -197,7 +207,7 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ steps.docker-tags.outputs.docker_tag }}
-            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ env.DOCKER_CHANNEL_TAG }}
           labels: |
             org.opencontainers.image.title=Limbo
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
@@ -221,6 +231,7 @@ jobs:
           repository: ${{ env.DEPLOY_REPO }}
           token: ${{ secrets.GH_DEPLOY_LIMBO }}
           path: deploy-repo
+          ref: ${{ env.DEPLOY_BRANCH }}
 
       - name: Sync deploy folder
         if: ${{ inputs.publish_container == 'true' }}
@@ -240,7 +251,7 @@ jobs:
           git -C deploy-repo add .
           sync_sha="$(git rev-parse HEAD)"
           git -C deploy-repo commit -m "Sync deploy from ${GITHUB_REPOSITORY}@${sync_sha}"
-          git -C deploy-repo push
+          git -C deploy-repo push origin "${DEPLOY_BRANCH}"
 
       - name: Create deploy zip release
         if: ${{ inputs.publish_container == 'true' }}
@@ -248,8 +259,16 @@ jobs:
           RELEASE_VERSION: ${{ steps.bump.outputs.release_version }}
         run: |
           set -euo pipefail
-          tag="v${RELEASE_VERSION}"
-          zip_name="limbo-deploy-${RELEASE_VERSION}.zip"
+          if [[ "${{ inputs.channel }}" == "test" ]]; then
+            tag="test-v${RELEASE_VERSION}"
+          else
+            tag="v${RELEASE_VERSION}"
+          fi
+          if [[ "${{ inputs.channel }}" == "test" ]]; then
+            zip_name="limbo-deploy-test-${RELEASE_VERSION}.zip"
+          else
+            zip_name="limbo-deploy-${RELEASE_VERSION}.zip"
+          fi
           (cd deploy-repo && zip -r "/tmp/${zip_name}" . -x ".git/*")
           if gh release view "$tag" -R "${DEPLOY_REPO}" >/dev/null 2>&1; then
             gh release upload "$tag" "/tmp/${zip_name}" -R "${DEPLOY_REPO}" --clobber

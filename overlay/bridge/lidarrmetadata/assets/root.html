@@ -16,7 +16,14 @@
           aria-pressed="false"
           data-theme-toggle
         >
-          <span class="corner-button__inner"></span>
+          <span class="corner-button__inner">
+            <span class="corner-button__icon corner-button__icon--light" aria-hidden="true">
+              __THEME_ICON_DARK__
+            </span>
+            <span class="corner-button__icon corner-button__icon--dark" aria-hidden="true">
+              __THEME_ICON_LIGHT__
+            </span>
+          </span>
         </button>
         <button
           class="corner-button"
@@ -25,7 +32,11 @@
           aria-pressed="false"
           data-settings-button
         >
-          <span class="corner-button__inner"></span>
+          <span class="corner-button__inner">
+            <span class="corner-button__icon" aria-hidden="true">
+              __SETTINGS_ICON__
+            </span>
+          </span>
         </button>
         <div class="hero">
           <img src="__ICON_URL__" alt="Limbo" width="200" />
@@ -113,23 +124,10 @@
         </div>
 
         <div class="grid">
-          <div class="__LM_PILL_CLASS__">
-            <div class="label">Limbo Version</div>
-            <div class="value">__LM_VERSION__</div>
-          </div>
-
-          <div class="__LIDARR_PILL_CLASS__">
-            <div class="label">__LIDARR_VERSION_LABEL__</div>
-            <div class="value">__LIDARR_VERSION__</div>
-          </div>
+          __LM_PILL_HTML__
+          __LIDARR_PILL_HTML__
           __MBMS_PILLS__
-
-          <div class="__REPLICATION_PILL_CLASS__" data-replication-pill>
-            <div class="label">Last Replication</div>
-            <div class="value replication-date" data-replication-value>
-              __REPLICATION_DATE_HTML__
-            </div>
-          </div>
+          __REPLICATION_PILL_HTML__
         </div>
         <div class="links">
           <div class="links-left"></div>
@@ -236,7 +234,7 @@
       const replicationButton = document.querySelector(
         "[data-replication-url]",
       );
-      const replicationPill = document.querySelector("[data-replication-pill]");
+        const replicationPill = document.querySelector("[data-replication-pill]");
       const replicationValue = document.querySelector(
         "[data-replication-value]",
       );
@@ -255,6 +253,22 @@
         if (replicationPill) {
           replicationPill.classList.toggle("wide-action", running);
         }
+
+      document.addEventListener("click", (event) => {
+        const pillButton = event.target.closest("[data-pill-href]");
+        if (!pillButton || pillButton.disabled) {
+          return;
+        }
+        const target = pillButton.getAttribute("data-pill-href");
+        if (!target) {
+          return;
+        }
+        if (target.startsWith("/")) {
+          window.location.href = target;
+          return;
+        }
+        window.open(target, "_blank", "noopener");
+      });
         if (running) {
           replicationButton.dataset.replicationRunning = "true";
           if (started) {

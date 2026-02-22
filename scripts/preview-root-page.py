@@ -14,32 +14,46 @@ def build_preview_html() -> str:
     )
     template = template_path.read_text(encoding="utf-8")
     template = template.replace('href="/assets/root.css"', 'href="assets/root.css"')
+    svg_dir = template_path.parent
 
+    def read_svg(name: str) -> str:
+        try:
+            content = (svg_dir / name).read_text(encoding="utf-8")
+        except Exception:
+            return ""
+        return content.replace(
+            '<?xml version="1.0" encoding="UTF-8" standalone="no"?>', ""
+        ).strip()
+
+    menu_icon = read_svg("limbo-arrows-updn.svg")
     config_html = "\n".join(
         [
-            '          <div class="config-row"><div class="config-label">Filtering Enabled</div><div class="config-value"><span class="config-value-text">Yes</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
-            '          <div class="config-row"><div class="config-label">Exclude Media Formats</div><div class="config-value"><span class="config-value-text">vinyl, cassette</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
-            '          <div class="config-row"><div class="config-label">Include Media Formats</div><div class="config-value"><span class="config-value-text">all</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
-            '          <div class="config-row"><div class="config-label">Max Media Count</div><div class="config-value"><span class="config-value-text">no limit</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
-            '          <div class="config-row"><div class="config-label">Prefer Media Type</div><div class="config-value"><span class="config-value-text">digital</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">&#x25BE;</span></button></div></div>',
+            f'          <div class="config-row"><div class="config-label">Filtering Enabled</div><div class="config-value"><span class="config-value-text">Yes</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">{menu_icon}</span></button></div></div>',
+            f'          <div class="config-row"><div class="config-label">Exclude Media Formats</div><div class="config-value"><span class="config-value-text">vinyl, cassette</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">{menu_icon}</span></button></div></div>',
+            f'          <div class="config-row"><div class="config-label">Include Media Formats</div><div class="config-value"><span class="config-value-text">all</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">{menu_icon}</span></button></div></div>',
+            f'          <div class="config-row"><div class="config-label">Max Media Count</div><div class="config-value"><span class="config-value-text">no limit</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">{menu_icon}</span></button></div></div>',
+            f'          <div class="config-row"><div class="config-label">Prefer Media Type</div><div class="config-value"><span class="config-value-text">digital</span><button class="config-action" type="button" aria-label="More" data-config-menu><span class="config-action__inner">{menu_icon}</span></button></div></div>',
         ]
     )
 
     mbms_pills = "\n".join(
         [
-            '          <div class="pill has-action">',
+            '          <button type="button" class="pill has-action" data-pill-href="https://github.com/HVR88/MBMS_PLUS">',
             '            <div class="label">MBMS PLUS VERSION</div>',
             '            <div class="value">1.2.3</div>',
             '            <a class="pill-button" href="https://github.com/HVR88/MBMS_PLUS" target="_blank" rel="noopener">Git</a>',
-            "          </div>",
-            '          <div class="pill">',
+            f"            <span class=\"pill-arrow\" aria-hidden=\"true\">{read_svg('limbo-tall-arrow.svg')}</span>",
+            "          </button>",
+            '          <button type="button" class="pill" data-pill-href="">',
             '            <div class="label">MBMS Index Schedule</div>',
             '            <div class="value">daily @ 3:00&nbsp;<span class="ampm">AM</span></div>',
-            "          </div>",
-            '          <div class="pill">',
+            f"            <span class=\"pill-arrow\" aria-hidden=\"true\">{read_svg('limbo-tall-arrow.svg')}</span>",
+            "          </button>",
+            '          <button type="button" class="pill" data-pill-href="">',
             '            <div class="label">MBMS Replication Schedule</div>',
             '            <div class="value">hourly @ :15</div>',
-            "          </div>",
+            f"            <span class=\"pill-arrow\" aria-hidden=\"true\">{read_svg('limbo-tall-arrow.svg')}</span>",
+            "          </button>",
         ]
     )
 
@@ -48,7 +62,33 @@ def build_preview_html() -> str:
         "__LM_VERSION__": "1.9.7.10",
         "__LM_PLUGIN_VERSION__": "1.9.7.10",
         "__LM_PLUGIN_LABEL__": "Limbo Plugin",
-        "__LM_PILL_CLASS__": "pill has-action",
+        "__LM_PILL_HTML__": "\n".join(
+            [
+                '          <button type="button" class="pill has-action" data-pill-href="https://github.com/HVR88/Limbo">',
+                '            <div class="label">Limbo Version</div>',
+                '            <div class="value">1.9.7.10</div>',
+                f"            <span class=\"pill-arrow\" aria-hidden=\"true\">{read_svg('limbo-tall-arrow.svg')}</span>",
+                "          </button>",
+            ]
+        ),
+        "__LIDARR_PILL_HTML__": "\n".join(
+            [
+                '          <button type="button" class="pill has-action" data-pill-href="http://localhost:8686">',
+                '            <div class="label">LIDARR VERSION</div>',
+                '            <div class="value">3.1.2.4913</div>',
+                f"            <span class=\"pill-arrow\" aria-hidden=\"true\">{read_svg('limbo-tall-arrow.svg')}</span>",
+                "          </button>",
+            ]
+        ),
+        "__REPLICATION_PILL_HTML__": "\n".join(
+            [
+                '          <button type="button" class="pill has-action" data-replication-pill data-pill-href="/replication/start">',
+                '            <div class="label">Last Replication</div>',
+                '            <div class="value replication-date" data-replication-value>2026-02-20 12:23&nbsp;<span class="ampm">AM</span></div>',
+                f"            <span class=\"pill-arrow\" aria-hidden=\"true\">{read_svg('limbo-tall-arrow.svg')}</span>",
+                "          </button>",
+            ]
+        ),
         "__PLUGIN_PILL_CLASS__": "pill",
         "__LM_VERSION_BUTTON__": (
             '            <a class="pill-button update" href="https://github.com/HVR88/Limbo" target="_blank" rel="noopener">'
@@ -82,6 +122,10 @@ def build_preview_html() -> str:
         ),
         "__REPLICATION_PILL_CLASS__": "pill has-action",
         "__LIMBO_APIKEY__": "",
+        "__SETTINGS_ICON__": read_svg("limbo-settings.svg"),
+        "__THEME_ICON_DARK__": read_svg("limbo-dark.svg"),
+        "__THEME_ICON_LIGHT__": read_svg("limbo-light.svg"),
+        "__TALL_ARROW_ICON__": read_svg("limbo-tall-arrow.svg"),
         "__MBMS_URL__": "https://github.com/HVR88/MBMS_PLUS",
         "__CONFIG_HTML__": config_html,
         "__MBMS_PILLS__": mbms_pills,
@@ -120,6 +164,11 @@ def main() -> int:
         (assets_dir / "root.css").write_text(
             css_source.read_text(encoding="utf-8"), encoding="utf-8"
         )
+        svg_source_dir = css_source.parent
+        for svg_path in svg_source_dir.glob("*.svg"):
+            (assets_dir / svg_path.name).write_text(
+                svg_path.read_text(encoding="utf-8"), encoding="utf-8"
+            )
     print(output_path)
     if args.open:
         try:

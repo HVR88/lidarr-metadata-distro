@@ -1,9 +1,11 @@
 :root {
+  --action-button-font-color: rgba(199, 245, 199, 0.5);
   --bg1: #f6f1e9;
   --bg2: #d6f5d6;
   --bg3: #e2eaeb;
   --ink: #1f2c33;
   --muted: #55666f;
+  --action-button-font-color: var(--muted);
   --accent: #0b7d6d;
   --accent-2: #e2b159;
   --accent-green: #6dd000;
@@ -54,6 +56,7 @@
   --config-row-shift: 0.25rem;
 }
 body[data-theme="dark"] {
+  --action-button-font-color: rgba(199, 245, 199, 0.5);
   --bg1: #0f1316;
   --bg2: #17262b;
   --bg3: #0c1114;
@@ -135,11 +138,52 @@ body {
   padding: 12px 14px;
   background: var(--panel);
   box-shadow: var(--soft-shadow);
+  text-align: left;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.pill:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--soft-shadow);
+}
+.pill:active {
+  transform: translateY(2px);
+  box-shadow: var(--soft-shadow);
+}
+.pill:disabled:hover,
+.pill:disabled:active {
+  transform: none;
+  box-shadow: var(--soft-shadow);
+}
+.pill-arrow {
+  display: inline-block;
+  position: absolute;
+  right: 0.5em;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 48px;
+  width: auto;
+  aspect-ratio: 0.395;
+  opacity: 0.7;
+  pointer-events: none;
+  color: var(--border);
+}
+.pill-arrow svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 .pill .label,
 .pill .value {
   position: relative;
   z-index: 1;
+}
+.pill {
+  cursor: pointer;
+}
+.pill:disabled {
+  cursor: default;
 }
 .pill.has-action {
   padding-right: 90px;
@@ -204,6 +248,27 @@ body {
     transform 0.15s ease,
     box-shadow 0.15s ease;
 }
+.corner-button__icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  aspect-ratio: 1 / 1;
+  color: var(--muted);
+}
+.corner-button__icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.corner-button__icon--dark {
+  display: none;
+}
+body[data-theme="dark"] .corner-button__icon--dark {
+  display: block;
+}
+body[data-theme="dark"] .corner-button__icon--light {
+  display: none;
+}
 .corner-button:hover .corner-button__inner {
   transform: translateY(-2px);
   box-shadow: 0 8px 18px rgba(17, 27, 32, 0.16);
@@ -218,15 +283,10 @@ body[data-theme="dark"] .corner-button__inner {
 body[data-theme="dark"] .pill-button__inner {
   color: #c2cdd4;
 }
-body[data-theme="dark"] .refresh-button__inner {
-  color: #c2cdd4;
-}
 body[data-theme="dark"] .action-button__inner {
-  color: #c2cdd4;
+  color: rgba(199, 245, 199, 0.5);
 }
-body[data-theme="dark"] .config-action__inner {
-  color: #c2cdd4;
-}
+
 .settings-modal {
   position: fixed;
   inset: 0;
@@ -405,6 +465,7 @@ body[data-theme="dark"] .corner-button__inner {
 .value {
   font-size: 16px;
   font-weight: 600;
+  color: var(--ink);
 }
 .replication-date {
   white-space: nowrap;
@@ -649,7 +710,7 @@ body[data-theme="dark"] .corner-button__inner {
 .config-action__inner {
   border: 1px solid var(--accent-border);
   background: var(--accent-gradient-soft);
-  color: #2f5f16;
+  color: var(--action-button-font-color);
   width: 100%;
   height: 100%;
   border-radius: 6px;
@@ -664,12 +725,16 @@ body[data-theme="dark"] .corner-button__inner {
     box-shadow 0.15s ease;
 }
 .config-action__inner::before {
-  content: "";
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 10px solid currentColor;
+  content: none;
+}
+.config-action__inner svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+body[data-theme="dark"] .config-action__inner svg {
+  color: var(--action-button-font-color);
 }
 .config-menu {
   position: absolute;
